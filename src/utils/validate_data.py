@@ -24,7 +24,6 @@ def validate_youtube_data(df) -> Tuple(bool, List[str]):
     data_source    = context.data_sources.add_pandas("yt_source")
     data_asset     = data_source.add_dataframe_asset("yt_asset")
     batch_def      = data_asset.add_batch_definition_whole_dataframe("yt_batch")
-    batch          = batch_def.get_batch(batch_parameters={"dataframe": df})
 
 
     # ── STEP 3: expectation suite ─────────────────────────────────────────────
@@ -55,6 +54,7 @@ def validate_youtube_data(df) -> Tuple(bool, List[str]):
         )
     )
     results = validation_def.run(batch_parameters={"dataframe": df})
+
 
     # step 5: process results
     failed_expectations = []
