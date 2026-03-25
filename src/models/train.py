@@ -60,3 +60,9 @@ def train_model(df: pd.DataFrame):
         mlflow.log_metric("median_nn_distance", median_dist)
 
 
+        train_ds = mlflow.data.from_pandas(df, source="training_data")
+        mlflow.log_input(train_ds, context="training")
+
+        print("mlflow run compelte")
+
+
