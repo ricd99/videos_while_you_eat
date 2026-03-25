@@ -1,3 +1,50 @@
 import optuna 
 from sklearn.neighbors import NearestNeighbors
 from sklearn.feature_extraction.text import CountVectorizer
+from sklearn.model_selection import train_test_split
+from sklearn.compose import make_column_transformer
+
+def tune_model(df):
+    """
+    Tunes CountVectorizer + NearestNeighbors using Optuna
+    """
+    df_train, df_test = train_test_split(df, train_size=0.98, random_state=67)
+    df_train = df_train.reset_index(drop=True)
+    df_test  = df_test.reset_index(drop=True)
+
+    def objective(trial):
+
+        # Optuna suggests a value for each param within the range you give it
+        # It learns from previous trials which ranges produce better results
+        max_features = trial.suggest_int("max_features", 100, 2000, step=100)
+        min_df       = trial.suggest_int("min_df", 1, 5)
+        max_df       = trial.suggest_float("max_df", 0.7, 1.0, step=0.05)
+        ngram_max    = trial.suggest_int("ngram_max", 1, 3)   #
+        n_neighbours = trial.suggest_int("n_neighbours", 3, 15)
+        metric       = trial.suggest_categorical("metric", ["cosine", "euclidean"])
+
+        ct = make_column_transformer(
+            (CountVectorizer(
+                stop_words="english",
+                max_features=max_features,
+                min_df=min_df,
+                max_df=max_df,
+                ngram_range=(1, ngram_max)
+            ), "text"),
+            ("drop", ["channel_id", "channel_name"]),
+        )
+
+        try:
+            df_train_pp = ct.fit_transform(df_train)
+            df_test_pp  = ct.transform(df_test)
+        except ValueError:
+            # Some param combos produce an empty vocabulary
+            return float("inf")
+
+        nn = NearestNeighbors(n_neighbors=n_neighbours, metric=metric)
+        nn.fit(df_train_pp)
+
+        distances, _ = nn.kneighbors(df_test_pp)
+        mean_dist = distances.mean()
+
+        return mean_dist 
