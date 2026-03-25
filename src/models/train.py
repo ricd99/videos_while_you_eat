@@ -41,12 +41,11 @@ def train_model(df: pd.DataFrame):
         nn.fit(df_train_pp)
 
         distances, _ = nn.kneighbors(df_test_pp)
-        nn_distances = distances[:, 1:]
-        mean_dist = nn_distances.mean()
-        median_dist = np.median(nn_distances)
+        mean_dist = distances.mean()
+        median_dist = np.median(distances)
 
         # ── Log params (settings you chose) ──
-        mlflow.log_param("max_features",  MAX_FEATURES)
+        mlflow.log_param("max_features",  MAX_FEATURES),
         mlflow.log_param("min_df",  MIN_DF)
         mlflow.log_param("max_df",  MAX_DF)
         mlflow.log_param("ngram_range",   str(NGRAM_RANGE))
