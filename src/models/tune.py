@@ -48,3 +48,12 @@ def tune_model(df):
         mean_dist = distances.mean()
 
         return mean_dist 
+
+    study = optuna.create_study(direction="minimize")
+
+    study.optimize(objective, n_trials=20, show_progress_bar=True)
+
+    print("Best Params:", study.best_params)
+    print(f"Best mean distance: {study.best_value:.4f}")
+
+    return study.best_params
