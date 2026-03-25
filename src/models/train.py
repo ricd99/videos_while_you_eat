@@ -38,9 +38,9 @@ def train_model(df: pd.DataFrame):
     
 
     with mlflow.start_run():
-        nn.fit(df_test_pp)
+        nn.fit(df_train_pp)
 
-        distances, _ = nn.kneighbors(df_test)
+        distances, _ = nn.kneighbors(df_test_pp)
         nn_distances = distances[:, 1:]
         mean_dist = nn_distances.mean()
         median_dist = np.median(nn_distances)
