@@ -1,2 +1,5 @@
 performative.txt
 data/*
+mlruns/
+mlflow.db
+artifacts/

@@ -29,21 +29,28 @@ from src.utils.validate_data import validate_data
 from src.models.train import train_model
 from src.models.tune import tune_model
 from src.models.evaluate import evaluate_model
+from pathlib import Path
+
+
 
 def main(args):
     """
     Main training pipeline function that orchestrates the complete ML workflow.
     
     """
+    project_root = Path(__file__).resolve().parent.parent
+    mlruns_path = project_root / "mlruns"
 
-    project_root = os.path.abspath(os.path.join(os.path.dirname(__file__), ".."))
-    mlruns_path = args.mlflow_uri or os.path.join(project_root, "mlruns")
-    mlflow.set_tracking_uri(mlruns_path)
-    mlflow.set_experiment(args.experiment)  # Creates experiment if doesn't exist
+    mlflow.set_tracking_uri(mlruns_path.as_uri())
+    mlflow.set_experiment(args.experiment)
+
+    # project_root = os.path.abspath(os.path.join(os.path.dirname(__file__), ".."))
+    # mlruns_path = args.mlflow_uri or os.path.join(project_root, "mlruns")
+    # print(f"ml runs path: {mlruns_path}")
+    # mlflow.set_tracking_uri(mlruns_path)
+    # mlflow.set_experiment(args.experiment)  # Creates experiment if doesn't exist
 
     with mlflow.start_run():
-        mlflow.log_param("test_size", args.test_size)  
-
         # === STAGE 1: Data Loading & Validation ===
         print("🔄 Loading data...")
         df = load_data(args.input)  
