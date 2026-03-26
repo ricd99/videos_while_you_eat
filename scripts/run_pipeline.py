@@ -52,7 +52,7 @@ def main(args):
 
     with mlflow.start_run():
         # === STAGE 1: Data Loading ===
-        print("🔄 Loading data...")
+        print("Loading data...")
         df = load_data(args.input)  
         print(f"Data loaded: {df.shape[0]} rows, {df.shape[1]} columns")
 
