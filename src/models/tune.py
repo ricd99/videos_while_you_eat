@@ -47,7 +47,6 @@ def tune_model(df_train, df_test):
         return mean_dist 
 
     study = optuna.create_study(direction="minimize")
-
     study.optimize(objective, n_trials=20, show_progress_bar=True)
 
     print("Best Params:", study.best_params)

@@ -94,6 +94,7 @@ def main(args):
         mlflow.log_artifact(os.path.join(artifacts_dir, "preprocessing.pkl"))
         print(f"Saved {len(feature_cols)} feature columns for serving consistency")
 
+
         # === STAGE 4: Model Training and Tuning ===
         print("Training and tuning NearestNeighbors model...")
 
@@ -106,34 +107,27 @@ def main(args):
         mlflow.log_params(best_params)
         print(f"Tuning complete: {best_params}")
 
+
         # === STAGE 5: Final Training ===
-        print("Training optimized Nearest Neighbors model")
+        print("Training optimized Nearest Neighbors model...")
         t0 = time.time()
         nn, ct = train_model(df_train, df_test, params=best_params)
         train_time = time.time() - t0
         mlflow.log_metric("train_time", train_time)
-        print(f"✅ Model trained in {train_time:.2f} seconds")
+        print(f"Model trained in {train_time:.2f} seconds")
 
         
+        # === STAGE 6: Evaluating===
+        print("Evaluating model...")
+        df_test_pp = ct.transform(df_test)
+        mean_dist, median_dist = evaluate_model(nn, df_test_pp)
+        mlflow.log_metric("mean_nn_distance", mean_dist)
+        mlflow.log_metric("median_nn_distance", median_dist)
+        print(f"Mean distance: {mean_dist}")
+        print(f"Median distnace: {median_dist}")
 
-        model = XGBClassifier(
-            # Tree structure parameters
-            n_estimators=301,        # Number of trees (OPTIMIZED)
-            learning_rate=0.034,     # Step size shrinkage (OPTIMIZED)  
-            max_depth=7,            # Maximum tree depth (OPTIMIZED)
-            
-            # Regularization parameters
-            subsample=0.95,         # Sample ratio of training instances
-            colsample_bytree=0.98,  # Sample ratio of features for each tree
-            
-            # Performance parameters
-            n_jobs=-1,              # Use all CPU cores
-            random_state=42,        # Reproducible results
-            eval_metric="logloss",  # Evaluation metric
-            
-            # ESSENTIAL: Handle class imbalance
-            scale_pos_weight=scale_pos_weight  # Weight for positive class (churners)
-        )
+
+        # === STAGE 7: Save Model===
 
         # === Train Model and Track Training Time ===
         t0 = time.time()
