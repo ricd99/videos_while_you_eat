@@ -9,54 +9,23 @@ from sklearn.feature_extraction.text import CountVectorizer
 def train_model(df_train, df_test, params):
     """
     Trains a Nearest Neighbours model and logs with MLflow.
+    Returns fitted nn and column transformer
     """
 
-    # ── Config ─────────────────────────────────────                       
-    MAX_FEATURES = 200   
-    MIN_DF = 2    
-    MAX_DF = 0.95            
-    NGRAM_RANGE = (1, 2)    
-
-    N_NEIGHBOURS = 5
-    NN_DISTANCE_METRIC = "cosine"               
-
-
-
     ct = make_column_transformer(
-        (CountVectorizer(stop_words="english", max_features=MAX_FEATURES, min_df=MIN_DF, max_df = MAX_DF, ngram_range=NGRAM_RANGE), "text"), #TODO: figure out best hyperparameters
+        (CountVectorizer(stop_words="english", 
+                         max_features=params["max_features"], 
+                         min_df=params["min_df"], 
+                         max_df = params["max_df"], 
+                         ngram_range=(1, params["ngram_max"])), 
+                         "text"), 
         ("drop", ["channel_id", "channel_name"]),
     )
 
     df_train_pp = ct.fit_transform(df_train)
-    df_test_pp = ct.transform(df_test)
-    nn = NearestNeighbors(n_neighbors=N_NEIGHBOURS, metric = NN_DISTANCE_METRIC)        
-    
+    nn = NearestNeighbors(n_neighbors=params["n_neighbors"], metric = params["metric"])    
+    nn.fit(df_train_pp)    
 
-    with mlflow.start_run():
-        nn.fit(df_train_pp)
-
-        distances, _ = nn.kneighbors(df_test_pp)
-        mean_dist = distances.mean()
-        median_dist = np.median(distances)
-
-        # ── Log params (settings you chose) ──
-        mlflow.log_param("max_features",  MAX_FEATURES),
-        mlflow.log_param("min_df",  MIN_DF)
-        mlflow.log_param("max_df",  MAX_DF)
-        mlflow.log_param("ngram_range",   str(NGRAM_RANGE))
-        mlflow.log_param("n_neighbours",   N_NEIGHBOURS)
-        mlflow.log_param("metric",        NN_DISTANCE_METRIC)
-        mlflow.log_param("train_size",    len(df_train))
-        mlflow.log_param("test_size",     len(df_test))
-
-        # ── Log metrics (summary numbers) ──
-        mlflow.log_metric("mean_nn_distance",   mean_dist)
-        mlflow.log_metric("median_nn_distance", median_dist)
-
-
-        train_ds = mlflow.data.from_pandas(df, source="training_data")
-        mlflow.log_input(train_ds, context="training")
-
-        print("mlflow run compelte")
+    return nn, ct
 
 
