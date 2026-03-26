@@ -10,13 +10,13 @@ RAW = "data/processed/ve_channels/ve_with_features.json"
 OUT = "data/preprocessed/channels_pp.csv"
 
 df = pd.read_json(RAW)
-
+print(df.columns)
 df = preprocess_data(df)
-
+print(df.columns)
 # data sanity checks here?
 
 df_pp = build_features(df)
-
+print(df.columns)
 os.makedirs(os.path.dirname(OUT), exist_ok=True)
 df_pp.to_csv(OUT, index=False)
 print(f"Processed data saved to {OUT} | Shape: {df_pp.shape}") # expected shape 249, 7 (251 channels originally, 2 ai slop channels dropped in preprocess_data)

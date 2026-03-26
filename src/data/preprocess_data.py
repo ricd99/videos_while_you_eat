@@ -24,7 +24,6 @@ def preprocess_data(df: pd.DataFrame) -> pd.DataFrame:
 
     # imputing (manually Doug Woolever because many missing data)
     df.loc[df["channel_name"] == "Doug Woolever", "description"] = "One day when I was watching Spongebob, I noticed something bizarre. This thing was so bizarre that I decided to spend months analyzing every single episode of Spongebob Squarepants in search of answers. What I ended up finding was a completely original and impossibly well-supported conspiracy theory that will destroy everything we have ever been told about Bikini Bottom. The world needs to know the truth. This is the video that will change everything. Watch at your own risk. This video was created for commentary/analysis and to generate discussion through the presentation of research, protected under fair use."
-    df.loc[df["channel_name"] == "Doug Woolever", "country"] = "US"
     df.loc[df["channel_name"] == "Doug Woolever", "topics"] = "Entertainment"
     df.loc[df["channel_name"] == "Doug Woolever", "keywords"]  = "TV analysis theory spongebob"
 
