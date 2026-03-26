@@ -6,7 +6,7 @@ sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
 from src.data.preprocess_data import preprocess_data
 from src.features.build_features import build_features
 
-RAW = "data/raw/channels.json"
+RAW = "data/processed/ve_channels/ve_with_features.json"
 OUT = "data/preprocessed/channels_pp.csv"
 
 df = pd.read_json(RAW)
