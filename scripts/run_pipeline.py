@@ -51,21 +51,11 @@ def main(args):
     # mlflow.set_experiment(args.experiment)  # Creates experiment if doesn't exist
 
     with mlflow.start_run():
-        # === STAGE 1: Data Loading & Validation ===
+        # === STAGE 1: Data Loading ===
         print("🔄 Loading data...")
         df = load_data(args.input)  
         print(f"Data loaded: {df.shape[0]} rows, {df.shape[1]} columns")
 
-        print("Validating data quality with Great Expectations...")
-        is_valid, failed = validate_data(df)
-        mlflow.log_metric("data_quality_pass", int(is_valid))
-
-        if not is_valid:
-            import json
-            mlflow.log_text(json.dumps(failed, indent=2), artifact_file="failed_expectations.json")
-            raise ValueError(f"Data quality check failed. Issues: {failed}")
-        else:
-            print("Data validation passed. Logged to MLflow.")
 
         # === STAGE 2: Data Preprocessing ===
         print("Preprocessing data...")
@@ -100,6 +90,19 @@ def main(args):
         joblib.dump(preprocessing_artifact, os.path.join(artifacts_dir, "preprocessing.pkl"))
         mlflow.log_artifact(os.path.join(artifacts_dir, "preprocessing.pkl"))
         print(f"Saved {len(feature_cols)} feature columns for serving consistency")
+
+
+        # === STAGE 3.1: Data Validation (right before trainng model) ===
+        print("Validating data quality with Great Expectations...")
+        is_valid, failed = validate_data(df)
+        mlflow.log_metric("data_quality_pass", int(is_valid))
+
+        if not is_valid:
+            import json
+            mlflow.log_text(json.dumps(failed, indent=2), artifact_file="failed_expectations.json")
+            raise ValueError(f"Data quality check failed. Issues: {failed}")
+        else:
+            print("Data validation passed. Logged to MLflow.")
 
 
         # === STAGE 4: Model Training and Tuning ===
