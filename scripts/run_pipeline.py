@@ -101,7 +101,7 @@ def main(args):
         # === STAGE 4: Model Training and Tuning ===
         print("Training and tuning NearestNeighbors model...")
 
-        df_train, df_test = train_test_split(df_pp, train_size=0.98, random_state=67)
+        df_train, df_test = train_test_split(df_enc, train_size=0.98, random_state=67)
         df_train = df_train.reset_index(drop=True) 
         df_test = df_test.reset_index(drop=True)
         print(f"Train: {df_train.shape[0]} samples | Test: {df_test.shape[0]} samples")
