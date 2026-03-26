@@ -63,67 +63,43 @@ def main(args):
         processed_path = os.path.join(project_root, "data", "processed", "channels_pp.csv") # Save processed dataset for reproducibility and debugging
         os.makedirs(os.path.dirname(processed_path), exist_ok=True)
         df.to_csv(processed_path, index=False)
-        print(f"✅ Processed dataset saved to {processed_path} | Shape: {df.shape}")
+        print(f"Processed dataset saved to {processed_path} | Shape: {df.shape}")
 
-        # === STAGE 3: Feature Engineering - CRITICAL for Model Performance ===
-        print("🛠️  Building features...")
-        
-        # Apply feature engineering transformations
-        df_enc = build_features(df, target_col=target)  # Binary encoding + one-hot encoding
-        
-        # IMPORTANT: Convert boolean columns to integers for XGBoost compatibility
-        for c in df_enc.select_dtypes(include=["bool"]).columns:
-            df_enc[c] = df_enc[c].astype(int)
-        print(f"✅ Feature engineering completed: {df_enc.shape[1]} features")
+        # === STAGE 3: Feature Engineering ===
+        print("Building features...")
+        df_enc = build_features(df) 
+        print(f"Feature engineering completed: {df_enc.shape[1]} features")
 
-        # === CRITICAL: Save Feature Metadata for Serving Consistency ===
+        #Save Feature Metadata for Serving Consistency
         # This ensures serving pipeline uses exact same features in exact same order
         import json, joblib
         artifacts_dir = os.path.join(project_root, "artifacts")
         os.makedirs(artifacts_dir, exist_ok=True)
 
-        # Get feature columns (exclude target)
-        feature_cols = list(df_enc.drop(columns=[target]).columns)
+        feature_cols = list(df_enc.columns)
         
-        # Save locally for development serving
         with open(os.path.join(artifacts_dir, "feature_columns.json"), "w") as f:
             json.dump(feature_cols, f)
 
-        # Log to MLflow for production serving
         mlflow.log_text("\n".join(feature_cols), artifact_file="feature_columns.txt")
 
-        # ESSENTIAL: Save preprocessing artifacts for serving pipeline
-        # These artifacts ensure training and serving use identical transformations
         preprocessing_artifact = {
-            "feature_columns": feature_cols,  # Exact feature order
-            "target": target                  # Target column name
+            "feature_columns": feature_cols,  
         }
         joblib.dump(preprocessing_artifact, os.path.join(artifacts_dir, "preprocessing.pkl"))
         mlflow.log_artifact(os.path.join(artifacts_dir, "preprocessing.pkl"))
-        print(f"✅ Saved {len(feature_cols)} feature columns for serving consistency")
+        print(f"Saved {len(feature_cols)} feature columns for serving consistency")
 
         # === STAGE 4: Train/Test Split ===
-        print("📊 Splitting data...")
-        X = df_enc.drop(columns=[target])  # Feature matrix
-        y = df_enc[target]                 # Target vector
-        
-        # Stratified split to maintain class distribution in both sets
-        X_train, X_test, y_train, y_test = train_test_split(
-            X, y, 
-            test_size=args.test_size,    # Default: 20% for testing
-            stratify=y,                  # Maintain class balance
-            random_state=42              # Reproducible splits
-        )
-        print(f"✅ Train: {X_train.shape[0]} samples | Test: {X_test.shape[0]} samples")
+        print("Splitting data...")
+        df_train, df_test = train_test_split(df, train_size=0.98, random_state=67)
+        df_train = df_train.reset_index(drop=True) 
+        df_test = df_test.reset_index(drop=True)
 
-        # === CRITICAL: Handle Class Imbalance ===
-        # Calculate scale_pos_weight to handle imbalanced dataset
-        # This tells XGBoost to give more weight to the minority class (churners)
-        scale_pos_weight = (y_train == 0).sum() / (y_train == 1).sum()
-        print(f"📈 Class imbalance ratio: {scale_pos_weight:.2f} (applied to positive class)")
+        print(f"Train: {df_train.shape[0]} samples | Test: {df_test.shape[0]} samples")
 
-        # === STAGE 5: Model Training with Optimized Hyperparameters ===
-        print("🤖 Training XGBoost model...")
+        # === STAGE 5: Model Training ===
+        print("🤖 Training NearestNeighbors model...")
         
         # IMPORTANT: These hyperparameters were optimized through hyperparameter tuning
         # In production, consider using hyperparameter optimization tools like Optuna

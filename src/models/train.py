@@ -21,9 +21,6 @@ def train_model(df: pd.DataFrame):
     NN_DISTANCE_METRIC = "cosine"               
 
 
-    df_train, df_test = train_test_split(df, train_size=0.98, random_state=67)
-    df_train = df_train.reset_index(drop=True) 
-    df_test = df_test.reset_index(drop=True)
 
     ct = make_column_transformer(
         (CountVectorizer(stop_words="english", max_features=MAX_FEATURES, min_df=MIN_DF, max_df = MAX_DF, ngram_range=NGRAM_RANGE), "text"), #TODO: figure out best hyperparameters

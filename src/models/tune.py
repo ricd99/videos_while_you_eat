@@ -8,9 +8,6 @@ def tune_model(df):
     """
     Tunes CountVectorizer + NearestNeighbors using Optuna
     """
-    df_train, df_test = train_test_split(df, train_size=0.98, random_state=67)
-    df_train = df_train.reset_index(drop=True)
-    df_test  = df_test.reset_index(drop=True)
 
     def objective(trial):
 
