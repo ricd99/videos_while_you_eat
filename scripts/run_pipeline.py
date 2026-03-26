@@ -128,71 +128,24 @@ def main(args):
 
 
         # === STAGE 7: Save Model===
+        print("Saving model...")
+        artifacts_dir = os.path.join(project_root, "artifacts")
+        os.makedirs(artifacts_dir, exist_ok=True)
+        joblib.dump(nn, os.path.join(artifacts_dir, "nn_model.pkl"))
+        joblib.dump(ct, os.path.join(artifacts_dir, "column_transformer.pkl"))
+        mlflow.log_artifact(os.path.join(artifacts_dir, "nn_model.pkl"))
+        mlflow.log_artifact(os.path.join(artifacts_dir, "column_transformer.pkl"))
+        print("Model and transformer saved")
 
-        # === Train Model and Track Training Time ===
-        t0 = time.time()
-        model.fit(X_train, y_train)
-        train_time = time.time() - t0
-        mlflow.log_metric("train_time", train_time)  # Track training performance
-        print(f"✅ Model trained in {train_time:.2f} seconds")
-
-        # === STAGE 6: Model Evaluation ===
-        print("📊 Evaluating model performance...")
-        
-        # Generate predictions and track inference time
-        t1 = time.time()
-        proba = model.predict_proba(X_test)[:, 1]  # Get probability of churn (class 1)
-        
-        # Apply classification threshold (default: 0.35, optimized for churn detection)
-        # Lower threshold = more sensitive to churn (higher recall, lower precision)
-        y_pred = (proba >= args.threshold).astype(int)
-        pred_time = time.time() - t1
-        mlflow.log_metric("pred_time", pred_time)  # Track inference performance
-
-        # === CRITICAL: Log Evaluation Metrics to MLflow ===
-        # These metrics are essential for model comparison and monitoring
-        precision = precision_score(y_test, y_pred)    # Of predicted churners, how many actually churned?
-        recall = recall_score(y_test, y_pred)          # Of actual churners, how many did we catch?
-        f1 = f1_score(y_test, y_pred)                  # Harmonic mean of precision and recall
-        roc_auc = roc_auc_score(y_test, proba)         # Area under ROC curve (threshold-independent)
-        
-        # Log all metrics for experiment tracking
-        mlflow.log_metric("precision", precision)
-        mlflow.log_metric("recall", recall) 
-        mlflow.log_metric("f1", f1)
-        mlflow.log_metric("roc_auc", roc_auc)
-        
-        print(f"🎯 Model Performance:")
-        print(f"   Precision: {precision:.3f} | Recall: {recall:.3f}")
-        print(f"   F1 Score: {f1:.3f} | ROC AUC: {roc_auc:.3f}")
-
-        # === STAGE 7: Model Serialization and Logging ===
-        print("💾 Saving model to MLflow...")
-        # ESSENTIAL: Log model in MLflow's standard format for serving
-        mlflow.sklearn.log_model(
-            model, 
-            artifact_path="model"  # This creates a 'model/' folder in MLflow run artifacts
-        )
-        print("✅ Model saved to MLflow for serving pipeline")
-
-        # === Final Performance Summary ===
-        print(f"\n⏱️  Performance Summary:")
-        print(f"   Training time: {train_time:.2f}s")
-        print(f"   Inference time: {pred_time:.4f}s")
-        print(f"   Samples per second: {len(X_test)/pred_time:.0f}")
-        
-        print(f"\n📈 Detailed Classification Report:")
-        print(classification_report(y_test, y_pred, digits=3))
+       
 
 
 if __name__ == "__main__":
     p = argparse.ArgumentParser(description="Run youtube pipeline with NewarestNeighbors + MLflow")
     p.add_argument("--input", type=str, required=True,
-                   help="path to CSV (e.g., data/raw/Telco-Customer-Churn.csv)")
-    p.add_argument("--test_size", type=float, default=0.2)
-    p.add_argument("--experiment", type=str, default="Telco Churn")
-    p.add_argument("--mlflow_uri", type=str, default=None,
-                    help="override MLflow tracking URI, else uses project_root/mlruns")
+                   help="path to CSV (e.g., data/processed/ve_channels/ve_with_features.json)")
+    p.add_argument("--experiment", type=str, default="Youtube Recommender")
+    p.add_argument("--mlflow_uri", type=str, default=None)
 
     args = p.parse_args()
     main(args)
@@ -201,6 +154,6 @@ if __name__ == "__main__":
 # Use this below to run the pipeline:
 
 python scripts/run_pipeline.py \                                            
-    --input data/raw/Telco-Customer-Churn.csv \
+    --input data/processed/ve_channels/ve_with_features.json \
 
 """
