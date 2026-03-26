@@ -26,6 +26,10 @@ from src.data.preprocess_data import preprocess_data
 from src.features.build_features import build_features
 from src.utils.validate_data import validate_data   
 
+from src.models.train import train_model
+from src.models.tune import tune_model
+from src.models.evaluate import evaluate_model
+
 def main(args):
     """
     Main training pipeline function that orchestrates the complete ML workflow.
