@@ -17,7 +17,6 @@ df = preprocess_data(df)
 
 df_pp = build_features(df)
 
-
 os.makedirs(os.path.dirname(OUT), exist_ok=True)
 df_pp.to_csv(OUT, index=False)
-print(f"Processed data saved to {OUT} | Shape: {df_pp.shape}")
+print(f"Processed data saved to {OUT} | Shape: {df_pp.shape}") # expected shape 249, 7 (251 channels originally, 2 ai slop channels dropped in preprocess_data)
