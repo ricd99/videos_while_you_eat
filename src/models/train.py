@@ -6,7 +6,7 @@ from sklearn.neighbors import NearestNeighbors
 from sklearn.compose import make_column_transformer
 from sklearn.feature_extraction.text import CountVectorizer
 
-def train_model(df: pd.DataFrame):
+def train_model(df_train, df_test, params):
     """
     Trains a Nearest Neighbours model and logs with MLflow.
     """

@@ -94,19 +94,28 @@ def main(args):
         mlflow.log_artifact(os.path.join(artifacts_dir, "preprocessing.pkl"))
         print(f"Saved {len(feature_cols)} feature columns for serving consistency")
 
-        # === STAGE 4: Train/Test Split ===
-        print("Splitting data...")
+        # === STAGE 4: Model Training and Tuning ===
+        print("Training and tuning NearestNeighbors model...")
+
         df_train, df_test = train_test_split(df, train_size=0.98, random_state=67)
         df_train = df_train.reset_index(drop=True) 
         df_test = df_test.reset_index(drop=True)
-
         print(f"Train: {df_train.shape[0]} samples | Test: {df_test.shape[0]} samples")
 
-        # === STAGE 5: Model Training ===
-        print("🤖 Training NearestNeighbors model...")
+        best_params = tune_model(df_train, df_test)
+        mlflow.log_params(best_params)
+        print(f"Tuning complete: {best_params}")
+
+        # === STAGE 5: Final Training ===
+        print("Training optimized Nearest Neighbors model")
+        t0 = time.time()
+        nn, ct = train_model(df_train, df_test, params=best_params)
+        train_time = time.time() - t0
+        mlflow.log_metric("train_time", train_time)
+        print(f"✅ Model trained in {train_time:.2f} seconds")
+
         
-        # IMPORTANT: These hyperparameters were optimized through hyperparameter tuning
-        # In production, consider using hyperparameter optimization tools like Optuna
+
         model = XGBClassifier(
             # Tree structure parameters
             n_estimators=301,        # Number of trees (OPTIMIZED)
