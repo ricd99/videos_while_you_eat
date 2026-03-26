@@ -17,7 +17,7 @@ def tune_model(df_train, df_test):
         min_df       = trial.suggest_int("min_df", 1, 5)
         max_df       = trial.suggest_float("max_df", 0.7, 1.0, step=0.05)
         ngram_max    = trial.suggest_int("ngram_max", 1, 3)   #
-        n_neighbours = trial.suggest_int("n_neighbours", 3, 15)
+        n_neighbors = trial.suggest_int("n_neighbors", 3, 15)
         metric       = trial.suggest_categorical("metric", ["cosine", "euclidean"])
 
         ct = make_column_transformer(
@@ -38,7 +38,7 @@ def tune_model(df_train, df_test):
             # Some param combos produce an empty vocabulary
             return float("inf")
 
-        nn = NearestNeighbors(n_neighbors=n_neighbours, metric=metric)
+        nn = NearestNeighbors(n_neighbors=n_neighbors, metric=metric)
         nn.fit(df_train_pp)
 
         distances, _ = nn.kneighbors(df_test_pp)
