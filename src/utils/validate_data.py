@@ -1,8 +1,7 @@
 import great_expectations as gx
 import great_expectations.expectations as gxe
-from typing import Tuple, List
 
-def validate_data(df) -> Tuple(bool, List[str]):
+def validate_data(df) -> tuple[bool, list[str]]:
     """
     Comprehensive data validation for youtube dataset using Great Expectations
 
