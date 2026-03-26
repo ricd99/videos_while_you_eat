@@ -7,15 +7,8 @@ import os
 import sys
 import time
 import argparse
-import pandas as pd
 import mlflow
-import mlflow.sklearn
 from sklearn.model_selection import train_test_split
-from sklearn.metrics import (
-    classification_report, precision_score, recall_score,
-    f1_score, roc_auc_score
-)
-from sklearn.neighbors import NearestNeighbors
 
 
 # Allows imports from src/ directory structure
@@ -59,16 +52,16 @@ def main(args):
 
         # === STAGE 2: Data Preprocessing ===
         print("Preprocessing data...")
-        df = preprocess_data(df) 
+        df_pp = preprocess_data(df) 
     
         processed_path = os.path.join(project_root, "data", "processed", "channels_pp.csv") # Save processed dataset for reproducibility and debugging
         os.makedirs(os.path.dirname(processed_path), exist_ok=True)
-        df.to_csv(processed_path, index=False)
-        print(f"Processed dataset saved to {processed_path} | Shape: {df.shape}")
+        df_pp.to_csv(processed_path, index=False)
+        print(f"Processed dataset saved to {processed_path} | Shape: {df_pp.shape}")
 
         # === STAGE 3: Feature Engineering ===
         print("Building features...")
-        df_enc = build_features(df) 
+        df_enc = build_features(df_pp) 
         print(f"Feature engineering completed: {df_enc.shape[1]} features")
 
         #Save Feature Metadata for Serving Consistency
@@ -94,7 +87,7 @@ def main(args):
 
         # === STAGE 3.1: Data Validation (right before trainng model) ===
         print("Validating data quality with Great Expectations...")
-        is_valid, failed = validate_data(df)
+        is_valid, failed = validate_data(df_enc)
         mlflow.log_metric("data_quality_pass", int(is_valid))
 
         if not is_valid:
@@ -108,7 +101,7 @@ def main(args):
         # === STAGE 4: Model Training and Tuning ===
         print("Training and tuning NearestNeighbors model...")
 
-        df_train, df_test = train_test_split(df, train_size=0.98, random_state=67)
+        df_train, df_test = train_test_split(df_pp, train_size=0.98, random_state=67)
         df_train = df_train.reset_index(drop=True) 
         df_test = df_test.reset_index(drop=True)
         print(f"Train: {df_train.shape[0]} samples | Test: {df_test.shape[0]} samples")

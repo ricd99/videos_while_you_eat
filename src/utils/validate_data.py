@@ -32,7 +32,7 @@ def validate_data(df) -> tuple[bool, list[str]]:
  
  
     # schema — required columns
-    print("   Validating schema and required columns...")
+    print("Validating schema and required columns...")
     for col in ["channel_id", "channel_name", "text"]:
 
         suite.add_expectation(
