@@ -3,7 +3,6 @@ import pandas as pd
 
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
 
-from src.data.load_data import load_data
 from src.data.preprocess_data import preprocess_data
 from src.features.build_features import build_features
 
@@ -21,3 +20,4 @@ assert df.isna().sum().sum() == 0, "Dataset has NaNs after preprocessing"
 os.makedirs(os.path.dirname(OUT), exist_ok=True)
 df_pp.to_csv(OUT, index=False)
 print(f"Processed data saved to {OUT} | Shape: {df_pp.shape}") # expected shape 249, 7 (251 channels originally, 2 ai slop channels dropped in preprocess_data)
+
