@@ -7,7 +7,7 @@ from src.data.preprocess_data import preprocess_data
 from src.features.build_features import build_features
 
 RAW = "data/processed/ve_channels/ve_with_features.json"
-OUT = "data/preprocessed/channels_pp.csv"
+OUT = "data/processed/channels_pp.csv"
 
 df = pd.read_json(RAW)
 

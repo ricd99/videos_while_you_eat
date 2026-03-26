@@ -10,7 +10,6 @@ import argparse
 import pandas as pd
 import mlflow
 import mlflow.sklearn
-from posthog import project_root
 from sklearn.model_selection import train_test_split
 from sklearn.metrics import (
     classification_report, precision_score, recall_score,
@@ -25,63 +24,49 @@ sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
 from src.data.load_data import load_data
 from src.data.preprocess_data import preprocess_data
 from src.features.build_features import build_features
-from src.utils.validate_data import validate_data    # Data quality validation
+from src.utils.validate_data import validate_data   
 
 def main(args):
     """
     Main training pipeline function that orchestrates the complete ML workflow.
     
     """
-    
-    # === MLflow Setup - ESSENTIAL for experiment tracking ===
-    # Configure MLflow to use local file-based tracking (not a tracking server)
+
     project_root = os.path.abspath(os.path.join(os.path.dirname(__file__), ".."))
     mlruns_path = args.mlflow_uri or f"file://{project_root}/mlruns"  # Local file-based tracking
     mlflow.set_tracking_uri(mlruns_path)
     mlflow.set_experiment(args.experiment)  # Creates experiment if doesn't exist
 
-    # Start MLflow run - all subsequent logging will be tracked under this run
     with mlflow.start_run():
-        # === Log hyperparameters and configuration ===
-        # REQUIRED: These parameters are essential for model reproducibility
-        mlflow.log_param("model", "xgboost")           # Model type for comparison
-        mlflow.log_param("threshold", args.threshold)   # Classification threshold (default: 0.35)
-        mlflow.log_param("test_size", args.test_size)   # Train/test split ratio
+        mlflow.log_param("test_size", args.test_size)  
 
         # === STAGE 1: Data Loading & Validation ===
         print("🔄 Loading data...")
-        df = load_data(args.input)  # Load raw CSV data with error handling
-        print(f"✅ Data loaded: {df.shape[0]} rows, {df.shape[1]} columns")
+        df = load_data(args.input)  
+        print(f"Data loaded: {df.shape[0]} rows, {df.shape[1]} columns")
 
-        # === CRITICAL: Data Quality Validation ===
-        # This step is ESSENTIAL for production ML - validates data quality before training
-        print("🔍 Validating data quality with Great Expectations...")
+        print("Validating data quality with Great Expectations...")
         is_valid, failed = validate_data(df)
-        mlflow.log_metric("data_quality_pass", int(is_valid))  # Track data quality over time
+        mlflow.log_metric("data_quality_pass", int(is_valid))
 
         if not is_valid:
-            # Log validation failures for debugging
             import json
             mlflow.log_text(json.dumps(failed, indent=2), artifact_file="failed_expectations.json")
-            raise ValueError(f"❌ Data quality check failed. Issues: {failed}")
+            raise ValueError(f"Data quality check failed. Issues: {failed}")
         else:
-            print("✅ Data validation passed. Logged to MLflow.")
+            print("Data validation passed. Logged to MLflow.")
 
         # === STAGE 2: Data Preprocessing ===
-        print("🔧 Preprocessing data...")
-        df = preprocess_data(df)  # Basic cleaning (handle missing values, fix data types)
-
-        # Save processed dataset for reproducibility and debugging
-        processed_path = os.path.join(project_root, "data", "processed", "telco_churn_processed.csv")
+        print("Preprocessing data...")
+        df = preprocess_data(df) 
+    
+        processed_path = os.path.join(project_root, "data", "processed", "channels_pp.csv") # Save processed dataset for reproducibility and debugging
         os.makedirs(os.path.dirname(processed_path), exist_ok=True)
         df.to_csv(processed_path, index=False)
         print(f"✅ Processed dataset saved to {processed_path} | Shape: {df.shape}")
 
         # === STAGE 3: Feature Engineering - CRITICAL for Model Performance ===
         print("🛠️  Building features...")
-        target = args.target
-        if target not in df.columns:
-            raise ValueError(f"Target column '{target}' not found in data")
         
         # Apply feature engineering transformations
         df_enc = build_features(df, target_col=target)  # Binary encoding + one-hot encoding
@@ -218,11 +203,9 @@ def main(args):
 
 
 if __name__ == "__main__":
-    p = argparse.ArgumentParser(description="Run churn pipeline with XGBoost + MLflow")
+    p = argparse.ArgumentParser(description="Run youtube pipeline with NewarestNeighbors + MLflow")
     p.add_argument("--input", type=str, required=True,
                    help="path to CSV (e.g., data/raw/Telco-Customer-Churn.csv)")
-    p.add_argument("--target", type=str, default="Churn")
-    p.add_argument("--threshold", type=float, default=0.35)
     p.add_argument("--test_size", type=float, default=0.2)
     p.add_argument("--experiment", type=str, default="Telco Churn")
     p.add_argument("--mlflow_uri", type=str, default=None,
@@ -236,6 +219,5 @@ if __name__ == "__main__":
 
 python scripts/run_pipeline.py \                                            
     --input data/raw/Telco-Customer-Churn.csv \
-    --target Churn
 
 """
