@@ -3,6 +3,7 @@ import pandas as pd
 
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
 
+from src.data.load_data import load_data
 from src.data.preprocess_data import preprocess_data
 from src.features.build_features import build_features
 

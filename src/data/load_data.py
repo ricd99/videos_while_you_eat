@@ -3,10 +3,10 @@ import os
 
 def load_data(file_path: str) -> pd.DataFrame:
     """
-    Loads CSV data into a pandas DataFrame.
+    Loads JSON data into a pandas DataFrame.
     
     Args:
-        file_path(str): Path to the CSV file
+        file_path(str): Path to the JSON file
 
     Returns: pd.DataFrame: Loaded dataset.
     """
@@ -14,4 +14,4 @@ def load_data(file_path: str) -> pd.DataFrame:
     if not (os.path.exists(file_path)):
         raise FileNotFoundError(f"File not found: {file_path}")
     
-    return pd.read_csv(file_path)
+    return pd.read_json(file_path)
