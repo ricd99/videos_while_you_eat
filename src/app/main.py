@@ -33,4 +33,12 @@ class ChannelData(BaseModel):
     Yt channel data schema
     """
 
-    
+    channel_id: str
+    channel_name: str
+    title: str
+    description: str
+    country: str
+    topics: list
+    keywords: str
+    uploads: str
+    videos: list
