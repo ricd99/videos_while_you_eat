@@ -10,5 +10,5 @@ import os
 import pandas as pd
 import mlflow
 
-def predict():
-    return None
+def predict(input_dict: dict) -> str:
+    return "stub"
