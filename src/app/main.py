@@ -56,7 +56,7 @@ def get_prediction(data: ChannelData):
     3. Returns related channels in JSON format
     """
     try:
-        result = predict(data.dict())
+        result = predict(data.model_dump())
         return {"prediction": result}
     except Exception as e:
         return {"error": str(Exception)}
