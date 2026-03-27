@@ -15,8 +15,8 @@ from pydantic import BaseModel
 from src.serving.inference import predict
 
 app = FastAPI(
-    title = "ytrec prediction API"
-    description = "ML API for showing related long-form yt channels based on a query channel"
+    title = "ytrec prediction API",
+    description = "ML API for showing related long-form yt channels based on a query channel",
     version = "1.0.0"
 )
 
@@ -27,6 +27,7 @@ def root():
     Health check endpoint for AWS Application Load Balancer
     """
     return {"status": "ok"}
+
 
 class ChannelData(BaseModel):
     """
@@ -42,3 +43,20 @@ class ChannelData(BaseModel):
     keywords: str
     uploads: str
     videos: list
+
+
+@app.post("/predict")
+def get_prediction(data: ChannelData):
+    """
+    Main prediction endpoint.
+    
+    This endpoint:
+    1. Receives validated customer data via Pydantic model
+    2. Calls the inference pipeline to transform features and predict
+    3. Returns related channels in JSON format
+    """
+    try:
+        result = predict(data.dict())
+        return {"prediction": result}
+    except Exception as e:
+        return {"error": str(Exception)}
