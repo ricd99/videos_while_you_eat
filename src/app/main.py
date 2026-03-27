@@ -13,3 +13,24 @@ Architecture:
 from fastapi import FastAPI
 from pydantic import BaseModel
 from src.serving.inference import predict
+
+app = FastAPI(
+    title = "ytrec prediction API"
+    description = "ML API for showing related long-form yt channels based on a query channel"
+    version = "1.0.0"
+)
+
+
+@app.get("/")
+def root():
+    """
+    Health check endpoint for AWS Application Load Balancer
+    """
+    return {"status": "ok"}
+
+class ChannelData(BaseModel):
+    """
+    Yt channel data schema
+    """
+
+    
