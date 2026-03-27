@@ -108,7 +108,7 @@ def main(args):
 
         best_params = tune_model(df_train, df_test)
         mlflow.log_params(best_params)
-        print(f"Tuning complete: {best_params}")
+        print(f"Tuning complete. Best params: {best_params}")
 
 
         # === STAGE 5: Final Training ===

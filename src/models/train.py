@@ -23,7 +23,7 @@ def train_model(df_train, df_test, params):
     )
 
     df_train_pp = ct.fit_transform(df_train)
-    nn = NearestNeighbors(n_neighbors=params["n_neighbors"], metric = params["metric"])    
+    nn = NearestNeighbors(n_neighbors=5, metric = params["metric"])    
     nn.fit(df_train_pp)    
 
     return nn, ct
