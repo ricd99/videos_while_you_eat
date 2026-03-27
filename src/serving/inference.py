@@ -10,3 +10,5 @@ import os
 import pandas as pd
 import mlflow
 
+def predict():
+    return None

@@ -12,3 +12,4 @@ Architecture:
 
 from fastapi import FastAPI
 from pydantic import BaseModel
+from src.serving.inference import predict
