@@ -1,7 +1,6 @@
 import optuna 
 from sklearn.neighbors import NearestNeighbors
 from sklearn.feature_extraction.text import CountVectorizer
-from sklearn.model_selection import train_test_split
 from sklearn.compose import make_column_transformer
 
 def tune_model(df_train, df_test):
@@ -11,12 +10,10 @@ def tune_model(df_train, df_test):
 
     def objective(trial):
 
-        # Optuna suggests a value for each param within the range you give it
-        # It learns from previous trials which ranges produce better results
         max_features = trial.suggest_int("max_features", 100, 2000, step=100)
         min_df       = trial.suggest_int("min_df", 1, 5)
         max_df       = trial.suggest_float("max_df", 0.7, 1.0, step=0.05)
-        ngram_max    = trial.suggest_int("ngram_max", 1, 3)   #
+        ngram_max    = trial.suggest_int("ngram_max", 1, 3) 
         n_neighbors = trial.suggest_int("n_neighbors", 3, 15)
         metric       = trial.suggest_categorical("metric", ["cosine", "euclidean"])
 
