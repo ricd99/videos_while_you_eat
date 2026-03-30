@@ -5,3 +5,7 @@ mlflow.db
 artifacts/
 __pycache__/
 *.pyc
+
+# don't ignore the serving model
+!src/serving/model/
+!src/serving/model/**
