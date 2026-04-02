@@ -23,6 +23,7 @@ COPY src/serving/model /app/src/serving/model
 COPY src/serving/model/eacd9855d8444a0fad5bd82d2629fb78/artifacts/nn_model.pkl /app/model/nn_model.pkl
 COPY src/serving/model/eacd9855d8444a0fad5bd82d2629fb78/artifacts/feature_columns.txt /app/model/feature_columns.txt
 COPY src/serving/model/eacd9855d8444a0fad5bd82d2629fb78/artifacts/preprocessing.pkl /app/model/preprocessing.pkl
+COPY src/serving/model/eacd9855d8444a0fad5bd82d2629fb78/artifacts/column_transformer.pkl /app/model/column_transformer.pkl
 
 # make "serving" and "app" importable without the "src." prefix
 # ensures logs are shown in real-time (no buffering).
