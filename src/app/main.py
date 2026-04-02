@@ -65,3 +65,73 @@ def get_prediction(data: ChannelData):
 
 
 
+# === GRADIO WEB INTERFACE ===
+def gradio_interface(
+    channel_id, channel_name, title, description, country, topics,
+    keywords, uploads, videos
+):
+    """
+    Gradio interface function that processes form inputs and returns prediction.
+    
+    This function:
+    1. Takes individual form inputs from Gradio UI
+    2. Constructs the data dictionary matching the API schema
+    3. Calls the same inference pipeline used by the API
+    4. Returns user-friendly prediction string
+    
+    """
+    # Construct data dictionary matching ytrec schema
+    data = {
+        "channel_id": channel_id,
+        "channel_name": channel_name,
+        "titles": title,
+        "description": description,
+        "country": country,
+        "topics": topics,
+        "keywords": keywords,
+        "uploads": uploads,
+        "videos": videos,
+    }
+    
+    try:
+        result = predict(data) # Call same inference pipeline as API endpoint
+        return str(result) # Return as string for Gradio display
+    except Exception as e:
+        return "error: " + str(Exception)
+     
+
+# === GRADIO UI CONFIGURATION ===
+# Build comprehensive Gradio interface with all customer features
+demo = gr.Interface(
+    fn=gradio_interface,
+    inputs=[
+        gr.Text(label="Channel Name"),
+    ],
+    outputs=gr.Textbox(label="Recommended YT channels", lines=2),
+    title="similar channels to watch when you eat",
+    description="""
+    can't find a yt channel to watch and your food is getting cold?
+    enter a name of a youtube channel you enjoyed while eating recently. 
+    this model will give you similar ones.
+    """,
+    examples=[
+        # High churn risk example
+        ["Female", "No", "No", "Yes", "No", "Fiber optic", "No", "No", "No", 
+         "No", "Yes", "Yes", "Month-to-month", "Yes", "Electronic check", 
+         1, 85.0, 85.0],
+        # Low churn risk example  
+        ["Male", "Yes", "Yes", "Yes", "Yes", "DSL", "Yes", "Yes", "Yes",
+         "Yes", "No", "No", "Two year", "No", "Credit card (automatic)",
+         60, 45.0, 2700.0]
+    ],
+    theme=gr.themes.Soft()  # Professional appearance
+)
+
+# === MOUNT GRADIO UI INTO FASTAPI ===
+# This creates the /ui endpoint that serves the Gradio interface
+# IMPORTANT: This must be the final line to properly integrate Gradio with FastAPI
+app = gr.mount_gradio_app(
+    app,           # FastAPI application instance
+    demo,          # Gradio interface
+    path="/ui"     # URL path where Gradio will be accessible
+)
