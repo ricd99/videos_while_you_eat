@@ -8,4 +8,4 @@ numpy
 optuna
 pandas
 pydantic
-scikit_learn
+scikit-learn==1.6.1
