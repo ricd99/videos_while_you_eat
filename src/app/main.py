@@ -60,7 +60,7 @@ def get_prediction(data: ChannelData):
         result = predict(data.model_dump())
         return {"prediction": result}
     except Exception as e:
-        return {"error": str(Exception)}
+        return {"error": str(e)}
     
 
 
@@ -84,7 +84,7 @@ def gradio_interface(
     data = {
         "channel_id": channel_id,
         "channel_name": channel_name,
-        "titles": title,
+        "title": title,
         "description": description,
         "country": country,
         "topics": topics,
@@ -97,8 +97,8 @@ def gradio_interface(
         result = predict(data) # Call same inference pipeline as API endpoint
         return str(result) # Return as string for Gradio display
     except Exception as e:
-        return "error: " + str(Exception)
-     
+        return "error: " + str(e)
+
 
 # === GRADIO UI CONFIGURATION ===
 # Build comprehensive Gradio interface with all customer features
