@@ -1,14 +1,20 @@
 import joblib
 import pandas as pd
 import sys, os
-sys.path.append("/app/src")
+
+MODEL_DIR = "/app/model" if os.path.exists("/app/model") else os.path.join(os.path.dirname(__file__), "..", "..", "artifacts")
+DATA_PATH = "/app/data/channels_pp.csv" if os.path.exists("/app/data/channels_pp.csv") else os.path.join(os.path.dirname(__file__), "..", "..", "data", "processed", "channels_pp.csv")
+if os.path.exists("/app/src"):
+    sys.path.append("/app/src")
+else:
+    sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
 
 from data.preprocess_data import preprocess_data
 from features.build_features import build_features
 
-nn = joblib.load("/app/model/nn_model.pkl")
-ct = joblib.load("/app/model/column_transformer.pkl")
-df_all = pd.read_csv("/app/data/channels_pp.csv")
+nn = joblib.load(os.path.join(MODEL_DIR, "nn_model.pkl"))
+ct = joblib.load(os.path.join(MODEL_DIR, "column_transformer.pkl"))
+df_all = pd.read_csv(DATA_PATH)
 
 def predict(input_dict: dict):
     df = pd.DataFrame([input_dict])
