@@ -13,6 +13,7 @@ Architecture:
 from fastapi import FastAPI
 from pydantic import BaseModel
 from src.serving.inference import predict
+import gradio as gr
 
 app = FastAPI(
     title = "ytrec prediction API",
@@ -60,3 +61,7 @@ def get_prediction(data: ChannelData):
         return {"prediction": result}
     except Exception as e:
         return {"error": str(Exception)}
+    
+
+
+
