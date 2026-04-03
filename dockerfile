@@ -1,38 +1,51 @@
-# 1. Use the official lightweight Python base image
-FROM python:3.13-slim
+# syntax=docker/dockerfile:1
 
-# 2. Set working directory inside the container
+# Comments are provided throughout this file to help you get started.
+# If you need more help, visit the Dockerfile reference guide at
+# https://docs.docker.com/go/dockerfile-reference/
+
+# Want to help us make this template better? Share your feedback here: https://forms.gle/ybq9Krt8jtBL3iCk7
+
+ARG PYTHON_VERSION=3.13.7
+FROM python:${PYTHON_VERSION}-slim as base
+
+# Prevents Python from writing pyc files.
+ENV PYTHONDONTWRITEBYTECODE=1
+
+# Keeps Python from buffering stdout and stderr to avoid situations where
+# the application crashes without emitting any logs due to buffering.
+ENV PYTHONUNBUFFERED=1
+
 WORKDIR /app
 
-# 3. Copy only dependency file first (for Docker caching)
-COPY requirements.txt .
+# Create a non-privileged user that the app will run under.
+# See https://docs.docker.com/go/dockerfile-user-best-practices/
+ARG UID=10001
+RUN adduser \
+    --disabled-password \
+    --gecos "" \
+    --home "/nonexistent" \
+    --shell "/sbin/nologin" \
+    --no-create-home \
+    --uid "${UID}" \
+    appuser
 
-# 4. Install Python dependencies (add curl if you use MLflow local tracking URI)
-RUN pip install --upgrade pip \
-    && pip install -r requirements.txt \
-    && apt-get clean && rm -rf /var/lib/apt/lists/*
+# Download dependencies as a separate step to take advantage of Docker's caching.
+# Leverage a cache mount to /root/.cache/pip to speed up subsequent builds.
+# Leverage a bind mount to requirements.txt to avoid having to copy them into
+# into this layer.
+RUN --mount=type=cache,target=/root/.cache/pip \
+    --mount=type=bind,source=requirements.txt,target=requirements.txt \
+    python -m pip install -r requirements.txt
 
-# 5. Copy the entire project into the image
+# Switch to the non-privileged user to run the application.
+USER appuser
+
+# Copy the source code into the container.
 COPY . .
 
-# Explicitly copy model (in case .dockerignore excluded mlruns)
-# NOTE: destination changed to /app/src/serving/model to match inference.py's path
-COPY src/serving/model /app/src/serving/model
-
-# Copy MLflow run (artifacts + metadata) to the flat /app/model convenience path
-COPY src/serving/model/eacd9855d8444a0fad5bd82d2629fb78/artifacts/nn_model.pkl /app/model/nn_model.pkl
-COPY src/serving/model/eacd9855d8444a0fad5bd82d2629fb78/artifacts/feature_columns.txt /app/model/feature_columns.txt
-COPY src/serving/model/eacd9855d8444a0fad5bd82d2629fb78/artifacts/preprocessing.pkl /app/model/preprocessing.pkl
-COPY src/serving/model/eacd9855d8444a0fad5bd82d2629fb78/artifacts/column_transformer.pkl /app/model/column_transformer.pkl
-
-# make "serving" and "app" importable without the "src." prefix
-# ensures logs are shown in real-time (no buffering).
-# lets you import modules using from app... instead of from src.app....
-ENV PYTHONUNBUFFERED=1 \ 
-    PYTHONPATH=/app/src
-
-# 6. Expose FastAPI port
+# Expose the port that the application listens on.
 EXPOSE 8000
 
-# 7. Run the FastAPI app using uvicorn (change path if needed)
-CMD ["python", "-m", "uvicorn", "src.app.main:app", "--host", "0.0.0.0", "--port", "8000"]
+# Run the application.
+CMD python -m uvicorn src.app.main:app --host 0.0.0.0 --port 8000
