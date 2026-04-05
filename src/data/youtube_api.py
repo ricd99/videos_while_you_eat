@@ -49,12 +49,13 @@ def _get_channel_features(channel_id: str) -> dict | None:
         "uploads":      uploads_playlist.get("uploads"),
     }
 
-def _get_video_features(uploads: str, max_videos: int = 10, max_pages: int = 5) -> list:
+def _get_video_features(uploads: str, max_videos: int = 10, max_pages: int = 10) -> list:
     videos = []
     next_page = None
+    pages_fetched = 0
     print(f"fetching videos from playlist: {uploads}")
 
-    while len(videos) < max_videos:
+    while len(videos) < max_videos and pages_fetched < max_pages:
         print(f"fetched {len(videos)} videos so far...")
         resp = yt.playlistItems().list(
             part="snippet",
