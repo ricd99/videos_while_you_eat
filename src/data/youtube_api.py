@@ -12,7 +12,7 @@ def _get_channel_id_from_name(channel_name: str) -> str | None:
         part="snippet",
         q = channel_name,
         type="channel",
-        max_Results=1
+        maxResults=1
     ).execute()
 
     items = resp.get("items", [])
