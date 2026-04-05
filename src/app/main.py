@@ -49,10 +49,7 @@ def get_prediction(channel: ChannelName):
 
 
 # === GRADIO WEB INTERFACE ===
-def gradio_interface(
-    channel_id, channel_name, title, description, country, topics,
-    keywords, uploads, videos
-):
+def gradio_interface(channel_name):
     """
     Gradio interface function that processes form inputs and returns prediction.
     
@@ -63,22 +60,18 @@ def gradio_interface(
     4. Returns user-friendly prediction string
     
     """
-    # Construct data dictionary matching ytrec schema
-    data = {
-        "channel_id": channel_id,
-        "channel_name": channel_name,
-        "title": title,
-        "description": description,
-        "country": country,
-        "topics": topics,
-        "keywords": keywords,
-        "uploads": uploads,
-        "videos": videos,
-    }
     
     try:
-        result = predict(data) # Call same inference pipeline as API endpoint
-        return str(result) # Return as string for Gradio display
+        result = predict(channel_name) 
+        if isinstance(result, dict) and "error" in result:
+            return result["error"]
+
+        output = ""
+        for r in result:
+            output += f"{r['channel_name']}\n"
+            output += f"https://www.youtube.com/channel/{r['channel_id']}\n"
+            output += f"similarity score: {r['similarity_score']:.4f}\n\n"
+        return output.strip()
     except Exception as e:
         return "error: " + str(e)
 
