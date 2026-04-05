@@ -49,11 +49,13 @@ def _get_channel_features(channel_id: str) -> dict | None:
         "uploads":      uploads_playlist.get("uploads"),
     }
 
-def _get_video_features(uploads: str, max_videos: int = 10) -> list:
+def _get_video_features(uploads: str, max_videos: int = 10, max_pages: int = 5) -> list:
     videos = []
     next_page = None
+    print(f"fetching videos from playlist: {uploads}")
 
     while len(videos) < max_videos:
+        print(f"fetched {len(videos)} videos so far...")
         resp = yt.playlistItems().list(
             part="snippet",
             playlistId=uploads,
@@ -61,23 +63,23 @@ def _get_video_features(uploads: str, max_videos: int = 10) -> list:
             pageToken=next_page
         ).execute()
     
-    for item in resp["items"]:
-        if len(videos) >= max_videos:
-            break
+        for item in resp["items"]:
+            if len(videos) >= max_videos:
+                break
 
-        snippet = item["snippet"]
-        description = snippet.get("description", "")
-        if "#shorts" in description.lower():
-            continue
+            snippet = item["snippet"]
+            description = snippet.get("description", "")
+            if "#shorts" in description.lower():
+                continue
 
-        videos.append({
-            "title":       snippet.get("title"),
-            "description": description,
-        })
+            videos.append({
+                "title":       snippet.get("title"),
+                "description": description,
+            })
 
-        next_page = resp.get("nextPageToken")
-        if not next_page:
-            break
+            next_page = resp.get("nextPageToken")
+            if not next_page:
+                break
 
     return videos
 
