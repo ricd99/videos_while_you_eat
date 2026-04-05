@@ -80,9 +80,7 @@ def gradio_interface(channel_name):
 # Build comprehensive Gradio interface with all customer features
 demo = gr.Interface(
     fn=gradio_interface,
-    inputs=[
-        gr.Text(label="Channel Name"),
-    ],
+    inputs=gr.Text(label="Channel Name"),
     outputs=gr.Textbox(label="Recommended YT channels", lines=2),
     title="similar channels to watch when you eat",
     description="""
