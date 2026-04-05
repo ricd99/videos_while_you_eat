@@ -30,34 +30,17 @@ def root():
     return {"status": "ok"}
 
 
-class ChannelData(BaseModel):
+class ChannelName(BaseModel):
     """
     Yt channel data schema
     """
-
-    channel_id: str
     channel_name: str
-    title: str
-    description: str
-    country: str
-    topics: list
-    keywords: str
-    uploads: str
-    videos: list
 
 
 @app.post("/predict")
-def get_prediction(data: ChannelData):
-    """
-    Main prediction endpoint.
-    
-    This endpoint:
-    1. Receives validated customer data via Pydantic model
-    2. Calls the inference pipeline to transform features and predict
-    3. Returns related channels in JSON format
-    """
+def get_prediction(channel: ChannelName):
     try:
-        result = predict(data.model_dump())
+        result = predict(channel.channel_name)
         return {"prediction": result}
     except Exception as e:
         return {"error": str(e)}
