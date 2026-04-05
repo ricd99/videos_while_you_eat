@@ -7,7 +7,7 @@ load_dotenv()
 API_KEY = os.getenv("YOUTUBE_API_KEY_RYA")
 yt = build("youtube", "v3", developerKey=API_KEY)
 
-def get_channel_id_from_name(channel_name: str) -> str | None:
+def _get_channel_id_from_name(channel_name: str) -> str | None:
     resp = yt.search().list(
         part="snippet",
         q = channel_name,
@@ -22,7 +22,7 @@ def get_channel_id_from_name(channel_name: str) -> str | None:
     
     return items[0]["snippet"]["channelId"] #TODO: return options for user to choose
 
-def get_channel_features(channel_id: str) -> dict | None:
+def _get_channel_features(channel_id: str) -> dict | None:
     resp = yt.channels().list(
         part="brandingSettings,contentDetails,snippet,topicDetails",
         id=channel_id
@@ -49,7 +49,7 @@ def get_channel_features(channel_id: str) -> dict | None:
         "uploads":      uploads_playlist.get("uploads"),
     }
 
-def get_video_features(uploads: str, max_videos: int = 10) -> list:
+def _get_video_features(uploads: str, max_videos: int = 10) -> list:
     videos = []
     next_page = None
 
@@ -80,3 +80,18 @@ def get_video_features(uploads: str, max_videos: int = 10) -> list:
             break
 
     return videos
+
+def get_channel_data(channel_name: str) -> dict | None:
+    channel_id = _get_channel_id_from_name(channel_name)
+    if channel_id is None:
+        return None
+
+    features = _get_channel_features(channel_id)
+    if features is None:
+        return None
+    
+    videos = _get_video_features(features["uploads"])
+    features["videos"] = videos
+    features["channel_id"] = channel_id
+
+    return features
