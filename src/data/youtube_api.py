@@ -20,6 +20,10 @@ def _get_channel_id_from_name(channel_name: str) -> str | None:
         print(f"could not find channel: {channel_name}")
         return None
     
+    found_name = items[0]["snippet"]["title"]
+    found_id = items[0]["snippet"]["channelId"]
+    print(f"found channel: '{found_name}' (id: {found_id})")
+    
     return items[0]["snippet"]["channelId"] #TODO: return options for user to choose
 
 def _get_channel_features(channel_id: str) -> dict | None:
