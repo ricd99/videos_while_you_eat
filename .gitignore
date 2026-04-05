@@ -10,6 +10,9 @@ artifacts/
 __pycache__/
 *.pyc
 
+#env variables
+.env
+
 # don't ignore the serving model
 !src/serving/model/
 !src/serving/model/**
