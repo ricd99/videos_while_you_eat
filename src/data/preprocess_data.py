@@ -10,7 +10,7 @@ def preprocess_data(df: pd.DataFrame) -> pd.DataFrame:
     - removing video description from "video" feature
     """
     # dropping
-    df = df.drop(["title", "uploads", "country"], axis=1)  # later try keeping country? 
+    df = df.drop(["country"], axis=1)  # later try keeping country? 
     df = df.reset_index(drop=True)
     CHANNELS_TO_DROP = ["Philosophy Corner", "Psyphos"]
     df = df[~df["channel_name"].isin(CHANNELS_TO_DROP)]
