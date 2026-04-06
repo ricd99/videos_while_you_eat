@@ -45,7 +45,6 @@ def _get_channel_features(channel_id: str) -> dict | None:
 
     return {
         "channel_name": snippet.get("title"),
-        "title":        snippet.get("title"),
         "description":  snippet.get("description"),
         "country":      snippet.get("country"),
         "topics":       topic.get("topicCategories"),
@@ -101,4 +100,5 @@ def get_channel_data(channel_name: str) -> dict | None:
     features["videos"] = videos
     features["channel_id"] = channel_id
 
+    features.pop("uploads", None)
     return features
