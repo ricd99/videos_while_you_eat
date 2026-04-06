@@ -12,7 +12,7 @@ nn = joblib.load(Path.cwd() / "src" / "serving" / "model" / "eacd9855d8444a0fad5
 DATA_PATH = Path.cwd() / "data" / "processed" / "channels_pp.csv"
 df_all = pd.read_csv(DATA_PATH)
 
-def predict(channel_name: str):
+def predict(channel_name: str) -> list[dict] | dict:
     input_dict = get_channel_data(channel_name)
     if input_dict is None:
         return {"error": f"could not find channel: {channel_name}"}
