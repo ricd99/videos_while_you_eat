@@ -11,3 +11,4 @@ pydantic
 scikit-learn==1.6.1
 uvicorn
 python-dotenv
+psycopg2-binary
