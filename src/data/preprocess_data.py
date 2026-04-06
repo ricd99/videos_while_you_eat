@@ -20,7 +20,7 @@ def preprocess_data(df: pd.DataFrame) -> pd.DataFrame:
         ) if cell is not None else None
     )
 
-    df["keywords"] = df["keywords"].str.replace("\"", "", regex=False)
+    df["keywords"] = df["keywords"].str.replace("\"", "", regex=False)  #TODO: remove this cross imputing (as it is all combined into text later anyway?)
     df["topics"] = df["topics"].fillna(df["keywords"])
     df["keywords"] = df["keywords"].fillna(df["topics"])
 
