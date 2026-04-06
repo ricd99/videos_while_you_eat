@@ -7,7 +7,7 @@ from src.data.preprocess_data import preprocess_data
 from src.features.build_features import build_features
 
 
-ct = joblib.load(Path.cwd() / "src" / "serving" / "model" / "eacd9855d8444a0fad5bd82d2629fb78" / "artifacts" / "column_transformer.pkl")
+ct = joblib.load(Path.cwd() / "src" / "serving" / "model" / "eacd9855d8444a0fad5bd82d2629fb78" / "artifacts" / "column_transformer.pkl") #TODO: investigate filepaths more
 nn = joblib.load(Path.cwd() / "src" / "serving" / "model" / "eacd9855d8444a0fad5bd82d2629fb78" / "artifacts" / "nn_model.pkl")
 DATA_PATH = Path.cwd() / "data" / "processed" / "channels_pp.csv"
 df_all = pd.read_csv(DATA_PATH)
