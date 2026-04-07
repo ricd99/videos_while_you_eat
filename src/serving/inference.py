@@ -9,7 +9,7 @@ from src.data.youtube_api import get_channel_data
 from src.data.preprocess_data import preprocess_data
 from src.features.build_features import build_features
 
-load_dotenv(override=True)
+load_dotenv()
 ct = joblib.load(Path.cwd() / "src" / "serving" / "model" / "eacd9855d8444a0fad5bd82d2629fb78" / "artifacts" / "column_transformer.pkl") # works only if ran from project root
 nn = joblib.load(Path.cwd() / "src" / "serving" / "model" / "eacd9855d8444a0fad5bd82d2629fb78" / "artifacts" / "nn_model.pkl")           #TODO use __file__ so can run from anywhere?
 
