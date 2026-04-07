@@ -146,7 +146,7 @@ def collect():
 def _make_safe_filename(query:str, ext:str) :
     timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
     safe_query = query.replace(" ", "_")[:30]
-    return f"raw/{timestamp}_{safe_query}.{ext}"
+    return f"{timestamp}_{safe_query}.{ext}"
 
 
 if __name__ == "__main__":
