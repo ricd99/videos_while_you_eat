@@ -99,17 +99,15 @@ def _get_channel_details(channel_ids: list) -> list:
     return results
 
 def _save_to_s3(data: list, query: str):
-    timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
-    safe_query = query.replace(" ", "_")[:30]
-    key = f"raw/{timestamp}_{safe_query}.json"
+    filename = _make_safe_filename(query, "json")
 
     s3.put_object(
         Bucket=BUCKET,
-        Key=key,
+        Key=filename,
         Body=json.dumps(data, indent=2),
         ContentType="application/json"
     )
-    print(f"saved {len(data)} channels to s3://{BUCKET}/{key}")
+    print(f"saved {len(data)} channels to s3://{BUCKET}/{filename}")
 
 def collect():
     seen = set()
@@ -124,7 +122,15 @@ def collect():
         channel_ids = [c["channel_id"] for c in candidates]
         detailed = _get_channel_details(channel_ids)
 
-        # filter out low quality channels before saving
+        # save dataset with all collected channels for inspection
+        filename = _make_safe_filename(query, "json")
+        data_dir = Path.cwd() / "data" / "raw" / "collected_channels"
+        data_dir.mkdir(parents=True, exist_ok=True)
+        data_file = data_dir / filename
+        with open(data_file, "w") as f:
+            json.dump(detailed, f, indent=2)
+        
+
         clean = [c for c in detailed if not any(f in c["flags"] for f in ["low_subscribers", "low_videos"])]
         flagged = [c for c in detailed if c not in clean]
 
@@ -135,6 +141,12 @@ def collect():
             total += len(clean)
 
     print(f"\ndone. collected {total} new channels total.")
+
+
+def _make_safe_filename(query:str, ext:str) :
+    timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
+    safe_query = query.replace(" ", "_")[:30]
+    return f"raw/{timestamp}_{safe_query}.{ext}"
 
 
 if __name__ == "__main__":
