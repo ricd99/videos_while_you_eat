@@ -6,14 +6,13 @@ import os
 import ast
 
 load_dotenv()
-RDS_PW = os.getenv("RDS_PW")
 
 conn = psycopg2.connect(
-    host="ytrec-db-3.cx8wkqkwq9oo.us-west-2.rds.amazonaws.com",
+    host=os.getenv("RDS_HOST"),
     port=5432,
     database="postgres",
     user="postgres",
-    password=RDS_PW,
+    password=os.getenv("RDS_PW"),
     sslmode="require"
 )
 
