@@ -21,7 +21,7 @@ MIN_SUBSCRIBERS = 1000
 MIN_VIDEOS = 10
 MONTHS_INACTIVE = 6
 
-with open(Path.cwd() / "src" / "data" / "queries.json", "r") as f:
+with open(Path.cwd().parent.parent / "data" / "consts" / "yt_api_queries.json", "r") as f:
     QUERIES = json.load(f)
 
 def _search_channels(query: str, seen: set) -> list:
@@ -140,4 +140,7 @@ def collect():
 
 if __name__ == "__main__":
     collect()
+
+
+
 
