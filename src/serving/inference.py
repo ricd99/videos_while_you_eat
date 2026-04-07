@@ -20,7 +20,6 @@ def _get_db_connection():
 
 def _load_lookup_table() -> pd.DataFrame:
     engine = _get_db_connection()
-    print("got connection")
     df = pd.read_sql("SELECT channel_id, channel_name FROM channels_cleaned;", engine)
     return df
 
@@ -37,11 +36,7 @@ def predict(channel_name: str) -> list[dict] | dict:
     df = build_features(df)
     df_transformed = ct.transform(df)
     
-    print("pp done")
     distances, indices = nn.kneighbors(df_transformed)
-    print("nn done")
-    
-    print(df_lookup.info())
     
     results = df_lookup.iloc[indices[0]][["channel_name", "channel_id"]].copy()
     results["similarity_score"] = distances[0]
