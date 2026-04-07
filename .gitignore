@@ -4,6 +4,8 @@ data/*
 !data/processed/
 data/processed/*
 !data/processed/channels_pp.csv
+
+src/data/consts/*
 mlruns/
 mlflow.db
 artifacts/
