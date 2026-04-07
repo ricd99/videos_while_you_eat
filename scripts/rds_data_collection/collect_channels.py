@@ -103,7 +103,7 @@ def _save_to_s3(data: list, query: str):
 
     s3.put_object(
         Bucket=BUCKET,
-        Key=filename,
+        Key=f"raw{filename}", # save inside the raw folder in my s3 bucket
         Body=json.dumps(data, indent=2),
         ContentType="application/json"
     )
@@ -127,7 +127,7 @@ def collect():
         data_dir = Path.cwd() / "data" / "raw" / "collected_channels"
         data_dir.mkdir(parents=True, exist_ok=True)
         data_file = data_dir / filename
-        with open(data_file, "w") as f:
+        with open(data_file, "w") as f:            # with open creates file if doesnt exist (cant create directories tho, thats why mkdir before)
             json.dump(detailed, f, indent=2)
         
 
