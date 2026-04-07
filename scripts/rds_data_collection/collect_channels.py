@@ -65,16 +65,15 @@ def _get_channel_details(channel_ids: list) -> list:
                 branding = ch.get("brandingSettings", {}).get("channel", {})
                 uploads = ch.get("contentDetails", {}).get("relatedPlaylists", {}).get("uploads")
 
-                # check last upload date
+                # filter inactive channels
+                subscriber_count = int(stats.get("subscriberCount", 0))
+                video_count = int(stats.get("videoCount", 0))
+                published_at = snippet.get("publishedAt", "")
+
                 months_since_publish = None
                 if published_at:
                     published = datetime.fromisoformat(published_at.replace("Z", "+00:00"))
                     months_since_publish = (datetime.now(timezone.utc) - published).days / 30
-
-                # filter inactive channels
-                published_at = snippet.get("publishedAt", "")
-                subscriber_count = int(stats.get("subscriberCount", 0))
-                video_count = int(stats.get("videoCount", 0))
 
                 flags = []
                 if subscriber_count < MIN_SUBSCRIBERS:
