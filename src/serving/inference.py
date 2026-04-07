@@ -1,5 +1,5 @@
 import joblib
-import psycopg2
+from sqlalchemy import create_engine
 import pandas as pd
 from pathlib import Path
 from dotenv import load_dotenv
@@ -15,24 +15,19 @@ ct = joblib.load(Path.cwd() / "src" / "serving" / "model" / "eacd9855d8444a0fad5
 nn = joblib.load(Path.cwd() / "src" / "serving" / "model" / "eacd9855d8444a0fad5bd82d2629fb78" / "artifacts" / "nn_model.pkl")           #TODO use __file__ so can run from anywhere?
 
 def _get_db_connection():
-    return psycopg2.connect(
-        host=os.getenv("RDS_HOST"),
-        port=5432,
-        database="postgres",
-        user="postgres",
-        password=os.getenv("RDS_PW"),
-        sslmode="require"
-    )
+    host=os.getenv("RDS_HOST")
+    password=os.getenv("RDS_PW")
+    return create_engine(f"postgresql+psycopg2://postgres:{password}@{host}:5432/postgres?sslmode=require")
 
 def _load_lookup_table() -> pd.DataFrame:
-    conn = _get_db_connection()
-    df = pd.read_sql("SELECT channel_id, channel_name FROM channels_cleaned;", conn)
-    conn.close()
+    engine = _get_db_connection()
+    print("got connection")
+    df = pd.read_sql("SELECT channel_id, channel_name FROM channels_cleaned;", engine)
+    print(df)
     return df
 
 
 def predict(channel_name: str) -> list[dict] | dict:
-    df_lookup = _load_lookup_table()
 
     input_dict = get_channel_data(channel_name)
     if input_dict is None:
@@ -43,7 +38,11 @@ def predict(channel_name: str) -> list[dict] | dict:
     df = build_features(df)
     df_transformed = ct.transform(df)
     
+    print("pp done")
     distances, indices = nn.kneighbors(df_transformed)
+    print("nn done")
+    df_lookup = _load_lookup_table()
+    print(df_lookup.info())
     
     results = df_lookup.iloc[indices[0]][["channel_name", "channel_id"]].copy()
     results["similarity_score"] = distances[0]
