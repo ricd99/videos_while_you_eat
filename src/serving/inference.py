@@ -9,8 +9,7 @@ from src.data.youtube_api import get_channel_data
 from src.data.preprocess_data import preprocess_data
 from src.features.build_features import build_features
 
-load_dotenv()
-
+load_dotenv(override=True)
 ct = joblib.load(Path.cwd() / "src" / "serving" / "model" / "eacd9855d8444a0fad5bd82d2629fb78" / "artifacts" / "column_transformer.pkl") # works only if ran from project root
 nn = joblib.load(Path.cwd() / "src" / "serving" / "model" / "eacd9855d8444a0fad5bd82d2629fb78" / "artifacts" / "nn_model.pkl")           #TODO use __file__ so can run from anywhere?
 
@@ -23,9 +22,9 @@ def _load_lookup_table() -> pd.DataFrame:
     engine = _get_db_connection()
     print("got connection")
     df = pd.read_sql("SELECT channel_id, channel_name FROM channels_cleaned;", engine)
-    print(df)
     return df
 
+df_lookup = _load_lookup_table()
 
 def predict(channel_name: str) -> list[dict] | dict:
 
@@ -41,7 +40,7 @@ def predict(channel_name: str) -> list[dict] | dict:
     print("pp done")
     distances, indices = nn.kneighbors(df_transformed)
     print("nn done")
-    df_lookup = _load_lookup_table()
+    
     print(df_lookup.info())
     
     results = df_lookup.iloc[indices[0]][["channel_name", "channel_id"]].copy()
