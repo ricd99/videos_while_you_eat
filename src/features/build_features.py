@@ -12,7 +12,18 @@ def build_features(df: pd.DataFrame) -> pd.DataFrame:
         df["videos"]
     ]
 
-    df["text"] = [str(f) for f in fields if f pd.notna(f)]
+    df["text"] = df.apply(
+        lambda row: "\n".join(
+            str(x) for x in [                # str(x) to be safe
+                row["description"],
+                row["topics"],
+                row["keywords"],
+                row["videos"]
+            ] if pd.notna(x)
+        ),
+        axis=1 #TODO sequential operation to check for Nans
+    )
+    
     df = df.drop(["description", "topics", "keywords", "videos"], axis=1)
 
     return df;
