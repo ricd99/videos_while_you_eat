@@ -7,7 +7,7 @@ import os
 from datetime import datetime, timezone
 
 """
-Script that collects new channels from yt api. All features except videos are collected here as videos is an expensive api call. 
+Script that collects new channels from yt api. All features except videos are collected here as videos takes longer and is a more expensive api call. 
 Channels that don't meet filtering requirements (sub/video count, last publish date) have flags attached to their entry
 """
 
@@ -24,7 +24,7 @@ MONTHS_INACTIVE = 6
 with open(Path.cwd()/ "data" / "consts" / "yt_api_queries.json", "r") as f:
     QUERIES = json.load(f)
 
-def _search_channels(query: str, seen: set) -> list:
+def _search_channels(query: str, seen: set) -> list:          #TODO: combine with similar function in fetch_data_given_query_channel
     collected = []
     try:
         resp = yt.search().list(
@@ -47,7 +47,7 @@ def _search_channels(query: str, seen: set) -> list:
         print(f"search error for '{query}': {e}")
     return collected
 
-def _get_channel_details(channel_ids: list) -> list:
+def _get_channel_details(channel_ids: list) -> list:        #TODO: combine with similar function in fetch_data_given_query_channel
     results = []
     # batch up to 50 at a time — youtube api allows this
     for i in range(0, len(channel_ids), 50):

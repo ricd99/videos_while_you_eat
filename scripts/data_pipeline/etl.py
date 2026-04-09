@@ -5,7 +5,7 @@ import pandas as pd
 from dotenv import load_dotenv
 import os
 from psycopg2.extras import execute_values
-
+from src.data.fetch_data_given_query_channel import _get_video_features
 
 load_dotenv()
 
@@ -61,6 +61,16 @@ def _insert_into_rds(conn, df: pd.DataFrame, table: str, columns: list[str]):
     cur.close()
     print(f"inserted {inserted} new rows into {table}")
 
+def _append_video_data(new_channels):                    # video data collected here
+    for channel in new_channels:
+        uploads = channel.get("uploads")
+        if uploads:
+            print(f"fetching videos for {channel.get("channel_name")}")
+            channel["videos"] = _get_video_features(uploads)
+        else:
+            channel["videos"] = []
+
+
 def run_etl():
     conn = _get_db_connection()
     existing_ids = _get_existing_channel_ids(conn)
@@ -74,6 +84,8 @@ def run_etl():
         print("no new channels, no etl to do")
         conn.close()
         return
+    
+    _append_video_data(new_channels)
 
     df = pd.DataFrame(new_channels)
     df = preprocess_data(df)
