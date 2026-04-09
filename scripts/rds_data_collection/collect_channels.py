@@ -103,7 +103,7 @@ def _save_to_s3(data: list, query: str):
 
     s3.put_object(
         Bucket=BUCKET,
-        Key=f"raw{filename}", # save inside the raw folder in my s3 bucket
+        Key=f"raw/{filename}", # save inside the raw folder in my s3 bucket
         Body=json.dumps(data, indent=2),
         ContentType="application/json"
     )
