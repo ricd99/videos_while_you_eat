@@ -5,7 +5,7 @@ from pathlib import Path
 from dotenv import load_dotenv
 import os
 
-from src.data.youtube_api import get_channel_data
+from data.fetch_data_given_query_channel import get_channel_data
 from src.data.preprocess_data import preprocess_data
 from src.features.build_features import build_features
 
