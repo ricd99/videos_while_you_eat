@@ -77,7 +77,12 @@ def run_etl():
 
     df = pd.DataFrame(new_channels)
     df = preprocess_data(df)
+    print(f"preprocessing s3 done")
 
-#_insert_df(conn, df, "channels_cleaned", ["channel_id", "channel_name", "description", "topics", "keywords", "videos"])
+    _insert_into_rds(conn, df, "channels_cleaned", ["channel_id", "channel_name", "description", "topics", "keywords", "videos"])
+
+    df_features = build_features(df)
+
+#
 #_insert_df(conn, df, "channels_features", ["channel_id", "channel_name", "text"])
 
