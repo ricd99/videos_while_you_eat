@@ -10,7 +10,7 @@ def preprocess_data(df: pd.DataFrame) -> pd.DataFrame:
     - removing video description from "video" feature
     """
     # dropping
-    df = df.drop(["country"], axis=1)  # later try keeping country? 
+    df = df.drop(["country"], axis=1, errors="ignore")  # later try keeping country?, errors=ignore does nto raise error of column no exist 
     df = df.reset_index(drop=True)
 
     # topics from wikipedia

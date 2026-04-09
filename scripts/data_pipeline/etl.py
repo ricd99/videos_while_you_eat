@@ -75,7 +75,8 @@ def run_etl():
         conn.close()
         return
 
-    
+    df = pd.DataFrame(new_channels)
+    df = preprocess_data(df)
 
 #_insert_df(conn, df, "channels_cleaned", ["channel_id", "channel_name", "description", "topics", "keywords", "videos"])
 #_insert_df(conn, df, "channels_features", ["channel_id", "channel_name", "text"])
