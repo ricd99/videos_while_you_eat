@@ -40,5 +40,50 @@ def _load_raw_from_s3() -> list:
         body = s3.get_object(Bucket=BUCKET, Key=key)["Body"].read()
         channels = json.loads(body)
         all_channels.extend(channels)
-    
+
+    print(f"loaded {len(all_channels)} total channels from S3")
     return all_channels
+
+def _insert_into_rds(conn, df: pd.DataFrame, table: str, columns: list[str]):
+    pass #TODO: function to abstract repeated code from insert functions below
+
+
+def _insert_cleaned(conn, df: pd.DataFrame):
+    cur = conn.cursor()
+    inserted = 0
+    for _, row in df.iterrows():
+        cur.execute("""
+            INSERT INTO channels_cleaned (channel_id, channel_name, description, topics, keywords, videos)
+            VALUES = (%s, %s, %s, %s, %s, %s)
+        """, (
+            row["channel_id"],
+            row["channel_name"],
+            str(row.get("description")),
+            str(row.get("topics", "")),
+            str(row.get("keywords", "")),
+            str(row.get("videos", "")),
+        ))
+        inserted += cur.rowcount
+    conn.commit()
+    cur.close()
+    print(f"inserted {inserted} new rows into channels_cleaned")
+
+def _insert_features(conn, df: pd.DataFrame):
+    cur = conn.cursor()
+    inserted = 0
+    for _, row in df.iterrows():
+        cur.execute("""
+            INSERT INTO channels_cleaned (channel_id, channel_name, description, topics, keywords, videos)
+            VALUES = (%s, %s, %s, %s, %s, %s)
+        """, (
+            row["channel_id"],
+            row["channel_name"],
+            str(row.get("description")),
+            str(row.get("topics", "")),
+            str(row.get("keywords", "")),
+            str(row.get("videos", "")),
+        ))
+        inserted += cur.rowcount
+    conn.commit()
+    cur.close()
+    print(f"inserted {inserted} new rows into channels_cleaned")
