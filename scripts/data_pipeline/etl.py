@@ -4,8 +4,8 @@ import psycopg2
 import pandas as pd
 from dotenv import load_dotenv
 import os
-import sys
-from pathlib import Path
+from psycopg2.extras import execute_values
+
 
 load_dotenv()
 
@@ -45,45 +45,22 @@ def _load_raw_from_s3() -> list:
     return all_channels
 
 def _insert_into_rds(conn, df: pd.DataFrame, table: str, columns: list[str]):
-    pass #TODO: function to abstract repeated code from insert functions below
-
-
-def _insert_cleaned(conn, df: pd.DataFrame):
     cur = conn.cursor()
-    inserted = 0
-    for _, row in df.iterrows():
-        cur.execute("""
-            INSERT INTO channels_cleaned (channel_id, channel_name, description, topics, keywords, videos)
-            VALUES = (%s, %s, %s, %s, %s, %s)
-        """, (
-            row["channel_id"],
-            row["channel_name"],
-            str(row.get("description")),
-            str(row.get("topics", "")),
-            str(row.get("keywords", "")),
-            str(row.get("videos", "")),
-        ))
-        inserted += cur.rowcount
+    col_names = ", ".join(columns)
+
+    rows = [tuple(row.get(col) for col in columns) for row in df.to_dict("records")]
+
+    execute_values(cur,
+        f"INSERT INTO {table} ({col_names}) VALUES %s ON CONFLICT (channel_id) DO NOTHING",
+        rows
+    )
+
+    inserted = cur.rowcount
     conn.commit()
     cur.close()
-    print(f"inserted {inserted} new rows into channels_cleaned")
+    print(f"inserted {inserted} new rows into {table}")
 
-def _insert_features(conn, df: pd.DataFrame):
-    cur = conn.cursor()
-    inserted = 0
-    for _, row in df.iterrows():
-        cur.execute("""
-            INSERT INTO channels_cleaned (channel_id, channel_name, description, topics, keywords, videos)
-            VALUES = (%s, %s, %s, %s, %s, %s)
-        """, (
-            row["channel_id"],
-            row["channel_name"],
-            str(row.get("description")),
-            str(row.get("topics", "")),
-            str(row.get("keywords", "")),
-            str(row.get("videos", "")),
-        ))
-        inserted += cur.rowcount
-    conn.commit()
-    cur.close()
-    print(f"inserted {inserted} new rows into channels_cleaned")
+
+#_insert_df(conn, df, "channels_cleaned", ["channel_id", "channel_name", "description", "topics", "keywords", "videos"])
+#_insert_df(conn, df, "channels_features", ["channel_id", "channel_name", "text"])
+
