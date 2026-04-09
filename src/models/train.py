@@ -6,7 +6,7 @@ from sklearn.neighbors import NearestNeighbors
 from sklearn.compose import make_column_transformer
 from sklearn.feature_extraction.text import CountVectorizer
 
-def train_model(df_train, df_test, params):
+def train_model(df_train, df_test, params):                        #TODO: try with embeddings again, this time wiht the one text col
     """
     Trains a Nearest Neighbours model and logs with MLflow.
     Returns fitted nn and column transformer
