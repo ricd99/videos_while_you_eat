@@ -25,6 +25,6 @@ def preprocess_data(df: pd.DataFrame) -> pd.DataFrame:
     df["keywords"] = df["keywords"].fillna(df["topics"])
 
     # removing description
-    df["videos"] = df["videos"].apply(lambda row: " ".join([v["title"] for v in row ]))
+    df["videos"] = df["videos"].apply(lambda row: " ".join([v["title"] for v in row]) if isinstance(row, list) else None) # crashes without isinstance check as v in row would iterate over None
 
     return df
