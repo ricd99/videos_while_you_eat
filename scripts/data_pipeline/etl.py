@@ -15,14 +15,15 @@ from src.features.build_features import build_features
 s3 = boto3.client("s3", region_name="us-west-2")
 BUCKET = "ytrec-data-lake"
 
-conn = psycopg2.connect(
-    host=os.getenv("RDS_HOST"),
-    port=5432,
-    database="postgres",
-    user="postgres",
-    password=os.getenv("RDS_PW"),
-    sslmode="require"
-)
+def _get_db_connection():
+    return psycopg2.connect(
+        host=os.getenv("RDS_HOST"),
+        port=5432,
+        database="postgres",
+        user="postgres",
+        password=os.getenv("RDS_PW"),
+        sslmode="require"
+    )
 
 def _get_existing_channel_ids(conn) -> set:
     cur = conn.cursor()
@@ -60,6 +61,21 @@ def _insert_into_rds(conn, df: pd.DataFrame, table: str, columns: list[str]):
     cur.close()
     print(f"inserted {inserted} new rows into {table}")
 
+def run_etl():
+    conn = _get_db_connection()
+    existing_ids = _get_existing_channel_ids(conn)
+    print(f"found {len(existing_ids)} existing channels in RDS")
+    raw_channels = _load_raw_from_s3()
+
+    new_channels = [c for c in raw_channels if c.get("channel_id") not in existing_ids] #TODO: faster ways other than one by one iteration (here and in general for this project)
+    print(f"{len(new_channels)} new channels to process")
+
+    if not new_channels:
+        print("no new channels, no etl to do")
+        conn.close()
+        return
+
+    
 
 #_insert_df(conn, df, "channels_cleaned", ["channel_id", "channel_name", "description", "topics", "keywords", "videos"])
 #_insert_df(conn, df, "channels_features", ["channel_id", "channel_name", "text"])
