@@ -85,7 +85,6 @@ def run_etl():
     existing_ids = _get_existing_channel_ids(conn)
     print(f"found {len(existing_ids)} existing channels in RDS")
     raw_channels = _load_raw_from_s3()
-
     new_channels = [c for c in raw_channels if c.get("channel_id") not in existing_ids] #TODO: faster ways other than one by one iteration (here and in general for this project)
     print(f"{len(new_channels)} new channels to process")
 
@@ -94,19 +93,26 @@ def run_etl():
         conn.close()
         return
     
-    try:
-        _append_video_data(new_channels)
-    except Exception as e:
-        print(f"stopped fetching videos: {e}")
+    completed = []
+    
+    for channel in new_channels:
+        try:
+            _append_video_data(channel)
+            completed.append(channel)
+        except Exception as e:
+            if "quotaExceeded" in str(e) or "dailyLimitExceeded" in str(e):
+                print(f"quota exceeded — inserting {len(completed)} completed channels")
+                break
 
+    
+    if completed:
+        df = pd.DataFrame(completed)
+        df = preprocess_data(df)
+        print(f"preprocessing s3 done")
 
-    df = pd.DataFrame(new_channels)
-    df = preprocess_data(df)
-    print(f"preprocessing s3 done")
-
-    _insert_into_rds(conn, df, "channels_cleaned", ["channel_id", "channel_name", "description", "topics", "keywords", "videos"])
-    df = build_features(df)
-    _insert_into_rds(conn, df, "channels_features", ["channel_id", "channel_name", "text"])
+        _insert_into_rds(conn, df, "channels_cleaned", ["channel_id", "channel_name", "description", "topics", "keywords", "videos"])
+        df = build_features(df)
+        _insert_into_rds(conn, df, "channels_features", ["channel_id", "channel_name", "text"])
 
     conn.close()
     print("ETL complete")
