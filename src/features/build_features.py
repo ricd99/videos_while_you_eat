@@ -24,7 +24,7 @@ def build_features(df: pd.DataFrame) -> pd.DataFrame:
         axis=1 #TODO sequential operation to check for Nans
     )
     
-    df = df[df["text"].str.strip() != ""]
+    df = df[df["text"].str.strip() != ""] # filtering out rows with 4 nans
     df = df.drop(["description", "topics", "keywords", "videos"], axis=1)
 
     return df;
