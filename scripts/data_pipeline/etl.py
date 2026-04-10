@@ -93,7 +93,11 @@ def run_etl():
         conn.close()
         return
     
-    _append_video_data(new_channels)
+    try:
+        _append_video_data(new_channels)
+    except Exception as e:
+        print(f"stopped fetching videos: {e}")
+
 
     df = pd.DataFrame(new_channels)
     df = preprocess_data(df)
