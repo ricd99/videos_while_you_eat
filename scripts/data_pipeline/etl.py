@@ -50,7 +50,7 @@ def _load_raw_from_s3() -> list:
         channels = json.loads(body)
         all_channels.extend(channels)
 
-    print(f"loaded {len(all_channels)} total channels from S3")
+    
     return all_channels
 
 def _insert_into_rds(conn, df: pd.DataFrame, table: str, columns: list[str]):
@@ -70,14 +70,13 @@ def _insert_into_rds(conn, df: pd.DataFrame, table: str, columns: list[str]):
     print(f"inserted {inserted} new rows into {table}")                                      #TODO: best to either always print in functions or print in helpers.
                                                                                              # but again, best to abstract away all these db helpers into another module?
 
-def _append_video_data(new_channels):                    # video data collected here
-    for channel in new_channels:
-        uploads = channel.get("uploads")
-        if uploads:
-            print(f"fetching videos for {channel.get("channel_name")}")
-            channel["videos"] = _get_video_features(uploads)
-        else:
-            channel["videos"] = []
+def _append_video_data(channel):                    # video data collected here
+    uploads = channel.get("uploads")
+    if uploads:
+        print(f"fetching videos for {channel.get("channel_name")}")
+        channel["videos"] = _get_video_features(uploads)
+    else:
+        channel["videos"] = []
 
 
 def run_etl():
@@ -85,6 +84,7 @@ def run_etl():
     existing_ids = _get_existing_channel_ids(conn)
     print(f"found {len(existing_ids)} existing channels in RDS")
     raw_channels = _load_raw_from_s3()
+    print(f"loaded {len(raw_channels)} total channels from S3")
     new_channels = [c for c in raw_channels if c.get("channel_id") not in existing_ids] #TODO: faster ways other than one by one iteration (here and in general for this project)
     print(f"{len(new_channels)} new channels to process")
 
