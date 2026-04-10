@@ -92,9 +92,11 @@ def run_etl():
     print(f"preprocessing s3 done")
 
     _insert_into_rds(conn, df, "channels_cleaned", ["channel_id", "channel_name", "description", "topics", "keywords", "videos"])
-
     df_features = build_features(df)
+    _insert_into_rds(conn, df, "channels_features", ["channel_id", "channel_name", "text"])
 
-#
-#_insert_df(conn, df, "channels_features", ["channel_id", "channel_name", "text"])
+    conn.close()
+    print("ETL complete")
+
+
 
