@@ -58,33 +58,39 @@ def _get_video_features(uploads: str, max_videos: int = 10, max_pages: int = 10)
     pages_fetched = 0
     print(f"fetching videos from playlist: {uploads}")
 
-    while len(videos) < max_videos and pages_fetched < max_pages:
-        print(f"fetched {len(videos)} videos so far...")
-        resp = yt.playlistItems().list(
-            part="snippet",
-            playlistId=uploads,
-            maxResults=50,
-            pageToken=next_page
-        ).execute()
-    
-        for item in resp["items"]:
-            if len(videos) >= max_videos:
-                break
+    try:
+        while len(videos) < max_videos and pages_fetched < max_pages:
+            print(f"fetched {len(videos)} videos so far...")
+            resp = yt.playlistItems().list(
+                part="snippet",
+                playlistId=uploads,
+                maxResults=50,
+                pageToken=next_page
+            ).execute()
+        
+            for item in resp["items"]:
+                if len(videos) >= max_videos:
+                    break
 
-            snippet = item["snippet"]
-            description = snippet.get("description", "")
-            if "#shorts" in description.lower():
-                continue
+                snippet = item["snippet"]
+                description = snippet.get("description", "")
+                if "#shorts" in description.lower():
+                    continue
 
-            videos.append({
-                "title":       snippet.get("title"),
-                "description": description,
-            })
+                videos.append({
+                    "title":       snippet.get("title"),
+                    "description": description,
+                })
 
-            next_page = resp.get("nextPageToken")
-            if not next_page:
-                break
-
+                next_page = resp.get("nextPageToken")
+                if not next_page:
+                    break
+    except Exception as e:
+        error_msg = str(e)
+        if "quotaExceeded" in error_msg or "dailyLimitExceeded" in error_msg:
+            print("YouTube API quota exceeded — stopping.")
+            raise
+        print(f"video fetch error: {e}")
     return videos
 
 def get_channel_data(channel_name: str) -> dict | None:
