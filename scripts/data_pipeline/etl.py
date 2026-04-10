@@ -5,12 +5,15 @@ import pandas as pd
 from dotenv import load_dotenv
 import os
 from psycopg2.extras import execute_values
-from src.data.fetch_data_given_query_channel import _get_video_features
+import sys
+from pathlib import Path
 
+sys.path.append(str(Path.cwd()))
 load_dotenv()
 
 from src.data.preprocess_data import preprocess_data
 from src.features.build_features import build_features
+from src.data.fetch_data_given_query_channel import _get_video_features
 
 s3 = boto3.client("s3", region_name="us-west-2")
 BUCKET = "ytrec-data-lake"
@@ -38,7 +41,12 @@ def _load_raw_from_s3() -> list:
 
     for obj in response.get("Contents", []):
         key = obj["Key"]
+        if not key.endswith(".json"):
+            continue
         body = s3.get_object(Bucket=BUCKET, Key=key)["Body"].read()
+        if not body:
+            print(f"skipping empty file: {key}")
+            continue
         channels = json.loads(body)
         all_channels.extend(channels)
 
@@ -98,6 +106,8 @@ def run_etl():
     conn.close()
     print("ETL complete")
 
+if __name__ == "__main__":
+    run_etl()
 
 
 """
