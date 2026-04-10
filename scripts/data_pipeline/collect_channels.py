@@ -157,7 +157,7 @@ if __name__ == "__main__":
 """
 # Use this below to run the script:
 
-python scripts/rds_data_collection/collect_channels.py
+python scripts/data_pipeline/collect_channels.py
 
 """
 

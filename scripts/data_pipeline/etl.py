@@ -103,6 +103,6 @@ def run_etl():
 """
 # Use this below to run the script:
 
-python src/scripts/etl.py
+python scripts/data_pipeline/etl.py
 
 """
