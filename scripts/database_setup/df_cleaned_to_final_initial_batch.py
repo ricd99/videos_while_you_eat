@@ -49,10 +49,10 @@ def _insert_into_rds(conn, df: pd.DataFrame, table: str, columns: list[str]):   
 def run_script():
     conn = _get_db_connection()
     df = _get_df_all_rows(conn)
-    print(f"loaded df from channels_cleaned with {df.shape[0]} shape")
+    print(f"loaded df from channels_cleaned with {df.shape[0]} rows")
 
     df = build_features(df)
-    _insert_into_rds(conn, df, "channels_features", ["channel_id", "channel_name", "text"])
+    _insert_into_rds(conn, df, "channels_final", ["channel_id", "channel_name", "text"])
 
     conn.close()
 
