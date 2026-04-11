@@ -4,7 +4,7 @@ import os
 
 load_dotenv()
 
-API_KEY = os.getenv("YOUTUBE_API_KEY_RYA")
+API_KEY = os.getenv("YOUTUBE_API_KEY_ELI")
 yt = build("youtube", "v3", developerKey=API_KEY)
 
 def _get_channel_id_from_name(channel_name: str) -> str | None:

@@ -66,8 +66,7 @@ def _insert_into_rds(conn, df: pd.DataFrame, table: str, columns: list[str]):
 
     inserted = cur.rowcount
     conn.commit()
-    cur.close()
-    print(f"inserted {inserted} new rows into {table}")                                      #TODO: best to either always print in functions or print in helpers.
+    cur.close()                              #TODO: best to either always print in functions or print in helpers.
                                                                                              # but again, best to abstract away all these db helpers into another module?
 
 def _append_video_data(channel):                    # video data collected here
