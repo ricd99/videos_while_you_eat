@@ -41,10 +41,10 @@ def _insert_into_rds(conn, df: pd.DataFrame, table: str, columns: list[str]):   
         rows
     )
 
-    inserted = cur.rowcount
+    inserted = cur.rowcount                                 #TODO: fix, cur.rowcount here is inaccurate way to count number of rows inserted
     conn.commit()
     cur.close()
-    print(f"inserted {inserted} new rows into {table}")
+    print(f"inserted {inserted} new rows into {table}")                               
 
 def run_script():
     conn = _get_db_connection()
