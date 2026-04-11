@@ -52,7 +52,7 @@ def _get_channel_features(channel_id: str) -> dict | None:
         "uploads":      uploads_playlist.get("uploads"),
     }
 
-def _get_video_features(uploads: str, max_videos: int = 10, max_pages: int = 10) -> list:
+def _get_video_features(uploads: str, max_videos: int = 10, max_pages: int = 5) -> list:
     videos = []
     next_page = None
     pages_fetched = 0
@@ -60,7 +60,6 @@ def _get_video_features(uploads: str, max_videos: int = 10, max_pages: int = 10)
 
     try:
         while len(videos) < max_videos and pages_fetched < max_pages:
-            print(f"fetched {len(videos)} videos so far...")
             resp = yt.playlistItems().list(
                 part="snippet",
                 playlistId=uploads,
@@ -85,6 +84,10 @@ def _get_video_features(uploads: str, max_videos: int = 10, max_pages: int = 10)
                 next_page = resp.get("nextPageToken")
                 if not next_page:
                     break
+
+            pages_fetched += 1
+            print(f"fetched {len(videos)} videos so far through {pages_fetched} pages")
+
     except Exception as e:
         error_msg = str(e)
         if "quotaExceeded" in error_msg or "dailyLimitExceeded" in error_msg:

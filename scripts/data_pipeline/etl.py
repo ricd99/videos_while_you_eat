@@ -99,10 +99,8 @@ def run_etl():
         try:
             _append_video_data(channel)
             completed.append(channel)
-        except Exception as e:
-            if "quotaExceeded" in str(e) or "dailyLimitExceeded" in str(e):
-                print(f"quota exceeded — inserting {len(completed)} completed channels")
-                break
+        except Exception as e: 
+            break
 
     
     if completed:
