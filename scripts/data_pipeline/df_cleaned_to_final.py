@@ -21,9 +21,9 @@ def _get_db_connection():
         sslmode="require"
     )
 
-def _get_df_all_rows(conn) -> pd.DataFrame:
+def _get_df_all_rows(conn, db) -> pd.DataFrame:
     cur = conn.cursor()
-    cur.execute("SELECT * FROM channels_cleaned")
+    cur.execute(f"SELECT * FROM {db}")
     rows = cur.fetchall()
     colnames = [desc[0] for desc in cur.description]
     df = pd.DataFrame(rows, columns=colnames)
@@ -48,8 +48,12 @@ def _insert_into_rds(conn, df: pd.DataFrame, table: str, columns: list[str]):   
 
 def run_script():
     conn = _get_db_connection()
-    df = _get_df_all_rows(conn)
-    print(f"loaded df from channels_cleaned with {df.shape[0]} rows")
+    df_cleaned = _get_df_all_rows(conn, "channels_cleaned")
+    df_final = _get_df_all_rows(conn, "channels_final")
+
+    existing_final_ids = set(df_final["channel_id"])
+    df = df_cleaned[~df_cleaned["channel_id"].isin(existing_final_ids)]
+    print(f"{len(df)} channels to process into channels_final")
 
     df = build_features(df)
     _insert_into_rds(conn, df, "channels_final", ["channel_id", "channel_name", "text"])
