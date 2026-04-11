@@ -97,6 +97,7 @@ def run_etl():
     
     for channel in new_channels:
         try:
+            print(f"appending video data for channel: {channel["channel_name"]}")
             _append_video_data(channel)
             completed.append(channel)
         except Exception as e: 
@@ -110,7 +111,7 @@ def run_etl():
 
         _insert_into_rds(conn, df, "channels_cleaned", ["channel_id", "channel_name", "description", "topics", "keywords", "videos"])
         df = build_features(df)
-        _insert_into_rds(conn, df, "channels_features", ["channel_id", "channel_name", "text"])
+        _insert_into_rds(conn, df, "channels_final", ["channel_id", "channel_name", "text"])
 
     conn.close()
     print("ETL complete")
