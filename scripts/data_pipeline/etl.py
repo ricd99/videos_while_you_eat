@@ -78,6 +78,19 @@ def _append_video_data(channel):                    # video data collected here
     else:
         channel["videos"] = []
 
+CHECKPOINT_FILE = Path.cwd() / "data" / "misc" / "etl_checkpoint.json"
+
+def _save_checkpoint(channel_id: str):
+    with open(CHECKPOINT_FILE, "w") as f:
+        json.dump({"last_channel_id": channel_id}, f)
+
+def _load_checkpoint() -> str | None:
+    if CHECKPOINT_FILE.exists():
+        with open(CHECKPOINT_FILE, "r") as f:
+            return json.load(f).get("last_channel_id")
+    return None
+
+
 
 def run_etl():
     conn = _get_db_connection()
@@ -95,15 +108,21 @@ def run_etl():
     
     completed = []
     
+    last_id = _load_checkpoint
+    if last_id and last_id in [c["channel_id"] for c in new_channels]:     
+        idx = [c["channel_id"] for c in new_channels].index(last_id)
+        new_channels = new_channels[idx:]                     # resume from last position
+        print(f"resuming from checkpoint: {last_id}")         #TODO: more efficient solution? this may iterate through almost all new channels
+    
     for channel in new_channels:
         try:
             print(f"appending video data for channel: {channel["channel_name"]}")
             _append_video_data(channel)
             completed.append(channel)
+            _save_checkpoint(channel["channel_id"])
         except Exception as e: 
             break
 
-    
     if completed:
         df = pd.DataFrame(completed)
         df = preprocess_data(df)
