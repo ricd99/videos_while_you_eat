@@ -67,6 +67,6 @@ if __name__ == "__main__":
 """
 # Use this below to run the script:
 
-python scripts/database_setup/df_cleaned_to_final_initial_batch.py
+python scripts/data_pipeline/df_cleaned_to_final.py
 
 """
