@@ -3,20 +3,16 @@ from pathlib import Path
 import boto3
 from googleapiclient.discovery import build
 from dotenv import load_dotenv
-import os
 from datetime import datetime, timezone
 
 PROJECT_ROOT = Path(__file__).resolve().parent.parent.parent
-
+sys.path.insert(0, str(PROJECT_ROOT))
 load_dotenv()
 
-yt = build("youtube", "v3", developerKey=os.getenv("YOUTUBE_API_KEY_RYA"))
-s3 = boto3.client("s3", region_name="us-west-2")
+from src.config import settings
 
-BUCKET = "ytrec-data-lake"
-MIN_SUBSCRIBERS = 1000
-MIN_VIDEOS = 10
-MONTHS_INACTIVE = 6
+yt = build("youtube", "v3", developerKey=settings.current_api_key)
+s3 = boto3.client("s3", region_name="us-west-2")
 
 with open(PROJECT_ROOT / "data" / "consts" / "yt_api_queries.json", "r") as f:
     QUERIES = json.load(f)
@@ -73,9 +69,9 @@ def _get_channel_details(channel_ids: list) -> list:        #TODO: combine with 
                     months_since_publish = (datetime.now(timezone.utc) - published).days / 30
 
                 flags = []
-                if subscriber_count < MIN_SUBSCRIBERS:
+                if subscriber_count < settings.min_subscribers:
                     flags.append("low_subscribers")
-                if video_count < MIN_VIDEOS:
+                if video_count < settings.min_videos:
                     flags.append("low_videos")
 
                 results.append({
@@ -99,12 +95,12 @@ def _save_to_s3(data: list, query: str):
     filename = _make_safe_filename(query, "json")
 
     s3.put_object(
-        Bucket=BUCKET,
-        Key=f"raw/{filename}", # save inside the raw folder in my s3 bucket
+        Bucket=settings.s3_bucket,
+        Key=f"raw/{filename}",
         Body=json.dumps(data, indent=2),
         ContentType="application/json"
     )
-    print(f"saved {len(data)} channels to s3://{BUCKET}/{filename}")
+    print(f"saved {len(data)} channels to s3://{settings.s3_bucket}/{filename}")
 
 def collect():
     seen = set()

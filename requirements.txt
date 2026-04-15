@@ -9,6 +9,7 @@ numpy
 optuna
 pandas
 pydantic
+pydantic-settings
 scikit-learn==1.6.1 
 sqlalchemy
 uvicorn

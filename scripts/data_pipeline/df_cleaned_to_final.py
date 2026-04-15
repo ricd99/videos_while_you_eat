@@ -1,23 +1,24 @@
 import psycopg2
 import pandas as pd
 from dotenv import load_dotenv
-import os
 from psycopg2.extras import execute_values
 import sys
 from pathlib import Path
 
-sys.path.append(str(Path.cwd()))
+PROJECT_ROOT = Path(__file__).resolve().parent.parent.parent
+sys.path.insert(0, str(PROJECT_ROOT))
 load_dotenv()
 
+from src.config import settings
 from src.features.build_features import build_features
 
 def _get_db_connection():
     return psycopg2.connect(
-        host=os.getenv("RDS_HOST"),
+        host=settings.rds_host,
         port=5432,
         database="postgres",
         user="postgres",
-        password=os.getenv("RDS_PW"),
+        password=settings.rds_password,
         sslmode="require"
     )
 

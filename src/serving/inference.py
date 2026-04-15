@@ -3,11 +3,11 @@ from sqlalchemy import create_engine
 import pandas as pd
 from pathlib import Path
 from dotenv import load_dotenv
-import os
 
 PROJECT_ROOT = Path(__file__).resolve().parent.parent.parent
 load_dotenv()
 
+from src.config import settings
 from src.data.fetch_data_given_query_channel import get_channel_data
 from src.data.preprocess_data import preprocess_data
 from src.features.build_features import build_features
@@ -15,10 +15,9 @@ from src.features.build_features import build_features
 ct = joblib.load(PROJECT_ROOT / "artifacts" / "column_transformer.pkl")
 nn = joblib.load(PROJECT_ROOT / "artifacts" / "nn_model.pkl")
 
+
 def _get_db_connection():
-    host=os.getenv("RDS_HOST")
-    password=os.getenv("RDS_PW")
-    return create_engine(f"postgresql+psycopg2://postgres:{password}@{host}:5432/postgres?sslmode=require")
+    return create_engine(settings.rds_url)
 
 def _load_lookup_table() -> pd.DataFrame:
     engine = _get_db_connection()
