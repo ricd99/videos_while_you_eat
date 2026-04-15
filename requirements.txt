@@ -9,7 +9,7 @@ numpy
 optuna
 pandas
 pydantic
-scikit-learn==1.6.1
+scikit-learn==1.6.1 
 sqlalchemy
 uvicorn
 python-dotenv
