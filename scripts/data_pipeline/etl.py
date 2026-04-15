@@ -8,7 +8,8 @@ from psycopg2.extras import execute_values
 import sys
 from pathlib import Path
 
-sys.path.append(str(Path.cwd()))
+PROJECT_ROOT = Path(__file__).resolve().parent.parent.parent
+sys.path.append(str(PROJECT_ROOT))
 load_dotenv()
 
 from src.data.preprocess_data import preprocess_data
@@ -77,7 +78,7 @@ def _append_video_data(channel):                    # video data collected here
     else:
         channel["videos"] = []
 
-CHECKPOINT_FILE = Path.cwd() / "data" / "misc" / "etl_checkpoint.json"
+CHECKPOINT_FILE = PROJECT_ROOT / "data" / "misc" / "etl_checkpoint.json"
 
 def _save_checkpoint(channel_id: str):
     with open(CHECKPOINT_FILE, "w") as f:

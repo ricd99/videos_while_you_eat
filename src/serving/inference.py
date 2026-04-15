@@ -5,13 +5,15 @@ from pathlib import Path
 from dotenv import load_dotenv
 import os
 
-from data.fetch_data_given_query_channel import get_channel_data
+PROJECT_ROOT = Path(__file__).resolve().parent.parent.parent
+load_dotenv()
+
+from src.data.fetch_data_given_query_channel import get_channel_data
 from src.data.preprocess_data import preprocess_data
 from src.features.build_features import build_features
 
-load_dotenv()
-ct = joblib.load(Path.cwd() / "src" / "serving" / "model" / "eacd9855d8444a0fad5bd82d2629fb78" / "artifacts" / "column_transformer.pkl") # works only if ran from project root
-nn = joblib.load(Path.cwd() / "src" / "serving" / "model" / "eacd9855d8444a0fad5bd82d2629fb78" / "artifacts" / "nn_model.pkl")           #TODO use __file__ so can run from anywhere?
+ct = joblib.load(PROJECT_ROOT / "artifacts" / "column_transformer.pkl")
+nn = joblib.load(PROJECT_ROOT / "artifacts" / "nn_model.pkl")
 
 def _get_db_connection():
     host=os.getenv("RDS_HOST")

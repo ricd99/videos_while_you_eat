@@ -4,6 +4,7 @@ from pathlib import Path
 from dotenv import load_dotenv
 import os
 
+PROJECT_ROOT = Path(__file__).resolve().parent.parent.parent
 load_dotenv()
 
 conn = psycopg2.connect(
@@ -16,7 +17,7 @@ conn = psycopg2.connect(
 )
 
 cur = conn.cursor()
-df = pd.read_csv(Path.cwd() / "data" / "processed" / "channels_pp.csv")
+df = pd.read_csv(PROJECT_ROOT / "data" / "processed" / "channels_pp.csv")
 
 for _, row in df.iterrows():
     cur.execute("""

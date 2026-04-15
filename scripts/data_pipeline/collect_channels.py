@@ -6,10 +6,7 @@ from dotenv import load_dotenv
 import os
 from datetime import datetime, timezone
 
-"""
-Script that collects new channels from yt api. All features except videos are collected here as videos takes longer and is a more expensive api call. 
-Channels that don't meet filtering requirements (sub/video count, last publish date) have flags attached to their entry
-"""
+PROJECT_ROOT = Path(__file__).resolve().parent.parent.parent
 
 load_dotenv()
 
@@ -21,7 +18,7 @@ MIN_SUBSCRIBERS = 1000
 MIN_VIDEOS = 10
 MONTHS_INACTIVE = 6
 
-with open(Path.cwd()/ "data" / "consts" / "yt_api_queries.json", "r") as f:
+with open(PROJECT_ROOT / "data" / "consts" / "yt_api_queries.json", "r") as f:
     QUERIES = json.load(f)
 
 def _search_channels(query: str, seen: set) -> list:          #TODO: combine with similar function in fetch_data_given_query_channel
@@ -124,7 +121,7 @@ def collect():
 
         # save dataset with all collected channels for inspection
         filename = _make_safe_filename(query, "json")
-        data_dir = Path.cwd() / "data" / "raw" / "collected_channels"
+        data_dir = PROJECT_ROOT / "data" / "raw" / "collected_channels"
         data_dir.mkdir(parents=True, exist_ok=True)
         data_file = data_dir / filename
         with open(data_file, "w") as f:            # with open creates file if doesnt exist (cant create directories tho, thats why mkdir before)
