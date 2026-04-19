@@ -101,21 +101,27 @@ class DatabaseManager:
             self._engine.dispose()
             self._engine = None
 
-    def load_lookup_table(self) -> Optional[pd.DataFrame]:
+    def load_lookup_table(self, timeout: int = 3) -> Optional[pd.DataFrame]:
         try:
+            conn = self.get_connection()
+            conn.timeout = timeout  # Set connection timeout
             return self.fetch_dataframe("SELECT channel_id, channel_name FROM channels_cleaned")
         except Exception:
             return None
 
     def load_lookup_table_with_fallback(self) -> pd.DataFrame:
-        try:
-            from src.config import settings
-            db_lookup = self.load_lookup_table()
-            if db_lookup is not None and not db_lookup.empty:
-                return db_lookup
-        except Exception:
-            pass
+        from src.config import settings
 
+        # In production, try DB first (set use_database=true in .env)
+        if settings.use_database:
+            try:
+                db_lookup = self.load_lookup_table(timeout=5)
+                if db_lookup is not None and not db_lookup.empty:
+                    return db_lookup
+            except Exception as e:
+                print(f"[WARN] DB lookup failed: {e}")
+
+        # Default: use CSV (fast, no network dependency)
         if FALLBACK_CSV.exists():
             df = pd.read_csv(FALLBACK_CSV)
             return df[["channel_id", "channel_name"]]

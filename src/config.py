@@ -21,6 +21,7 @@ class Settings(BaseSettings):
     max_videos_per_channel: int = 10
     max_pages_per_channel: int = 5
     model_run_id: Optional[str] = None
+    use_database: bool = False  # Set to True in production to use RDS instead of CSV
 
     model_config = SettingsConfigDict(
         env_file=PROJECT_ROOT / ".env",
