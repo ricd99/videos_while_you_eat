@@ -1,4 +1,3 @@
-import psycopg2
 from dotenv import load_dotenv
 import sys
 from pathlib import Path
@@ -7,17 +6,9 @@ PROJECT_ROOT = Path(__file__).resolve().parent.parent
 sys.path.insert(0, str(PROJECT_ROOT))
 load_dotenv()
 
-from src.config import settings
+from src.db.connection import db_manager
 
-conn = psycopg2.connect(
-    host=settings.rds_host,
-    port=5432,
-    database="postgres",
-    user="postgres",
-    password=settings.rds_password,
-    sslmode="require"
-)
-
+conn = db_manager.get_connection()
 cur = conn.cursor()
 
 cur.execute("""
@@ -41,4 +32,5 @@ cur.execute("""
 
 conn.commit()
 cur.close()
-conn.close()
+db_manager.close()
+print("Database tables created successfully.")

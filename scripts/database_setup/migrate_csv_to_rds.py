@@ -1,4 +1,3 @@
-import psycopg2
 import pandas as pd
 from pathlib import Path
 from dotenv import load_dotenv
@@ -8,34 +7,28 @@ PROJECT_ROOT = Path(__file__).resolve().parent.parent.parent
 sys.path.insert(0, str(PROJECT_ROOT))
 load_dotenv()
 
-from src.config import settings
+from src.db.connection import db_manager
+from src.data.preprocess_data import preprocess_data
+from src.features.build_features import build_features
 
-conn = psycopg2.connect(
-    host=settings.rds_host,
-    port=5432,
-    database="postgres",
-    user="postgres",
-    password=settings.rds_password,
-    sslmode="require"
-)
-
-cur = conn.cursor()
 df = pd.read_csv(PROJECT_ROOT / "data" / "processed" / "channels_pp.csv")
 
-for _, row in df.iterrows():
-    cur.execute("""
-        INSERT INTO channels_cleaned (channel_id, channel_name, description, topics, keywords, videos)
-        VALUES (%s, %s, %s, %s, %s, %s)
-        ON CONFLICT (channel_id) DO NOTHING;
-    """, (
-        row["channel_id"],
-        row["channel_name"],
-        row["description"],
-        str(row["topics"]),
-        str(row["keywords"]),
-        str(row["videos"])
-    ))
+df = preprocess_data(df)
 
-conn.commit()
-cur.close()
-conn.close()
+inserted = db_manager.insert_dataframe(
+    df,
+    "channels_cleaned",
+    ["channel_id", "channel_name", "description", "topics", "keywords", "videos"]
+)
+print(f"Inserted {inserted} rows into channels_cleaned")
+
+df = build_features(df)
+inserted = db_manager.insert_dataframe(
+    df,
+    "channels_final",
+    ["channel_id", "channel_name", "text"]
+)
+print(f"Inserted {inserted} rows into channels_final")
+
+db_manager.close()
+print("Migration complete.")

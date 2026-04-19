@@ -1,5 +1,6 @@
 boto3
 fastapi
+google-api-python-client
 gradio
 joblib
 mlflow

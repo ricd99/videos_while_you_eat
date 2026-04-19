@@ -1,9 +1,7 @@
 import json
 import boto3
-import psycopg2
 import pandas as pd
 from dotenv import load_dotenv
-from psycopg2.extras import execute_values
 import sys
 from pathlib import Path
 
@@ -12,6 +10,7 @@ sys.path.insert(0, str(PROJECT_ROOT))
 load_dotenv()
 
 from src.config import settings
+from src.db.connection import db_manager
 from src.data.preprocess_data import preprocess_data
 from src.features.build_features import build_features
 from src.data.fetch_data_given_query_channel import _get_video_features
@@ -19,22 +18,10 @@ from src.data.fetch_data_given_query_channel import _get_video_features
 s3 = boto3.client("s3", region_name="us-west-2")
 
 
-def _get_db_connection():
-    return psycopg2.connect(
-        host=settings.rds_host,
-        port=5432,
-        database="postgres",
-        user="postgres",
-        password=settings.rds_password,
-        sslmode="require"
-    )
+def _get_existing_channel_ids() -> set:
+    rows = db_manager.fetch_all("SELECT channel_id FROM channels_cleaned")
+    return {row[0] for row in rows}
 
-def _get_existing_channel_ids(conn) -> set:
-    cur = conn.cursor()
-    cur.execute("SELECT channel_id FROM channels_cleaned")
-    ids = {row[0] for row in cur.fetchall()}
-    cur.close()
-    return ids
 
 def _load_raw_from_s3() -> list:
     all_channels = []
@@ -53,35 +40,23 @@ def _load_raw_from_s3() -> list:
 
     return all_channels
 
-def _insert_into_rds(conn, df: pd.DataFrame, table: str, columns: list[str]):
-    cur = conn.cursor()
-    col_names = ", ".join(columns)
 
-    rows = [tuple(row.get(col) for col in columns) for row in df.to_dict("records")]
-
-    execute_values(cur,
-        f"INSERT INTO {table} ({col_names}) VALUES %s ON CONFLICT (channel_id) DO NOTHING",
-        rows
-    )
-
-    inserted = cur.rowcount
-    conn.commit()
-    cur.close()                              #TODO: best to either always print in functions or print in helpers.
-                                                                                             # but again, best to abstract away all these db helpers into another module?
-
-def _append_video_data(channel):                    # video data collected here
+def _append_video_data(channel):
     uploads = channel.get("uploads")
     if uploads:
-        print(f"fetching videos for {channel.get("channel_name")}")
+        print(f"fetching videos for {channel.get('channel_name')}")
         channel["videos"] = _get_video_features(uploads)
     else:
         channel["videos"] = []
 
+
 CHECKPOINT_FILE = PROJECT_ROOT / "data" / "misc" / "etl_checkpoint.json"
+
 
 def _save_checkpoint(channel_id: str):
     with open(CHECKPOINT_FILE, "w") as f:
         json.dump({"last_channel_id": channel_id}, f)
+
 
 def _load_checkpoint() -> str | None:
     if CHECKPOINT_FILE.exists():
@@ -90,36 +65,33 @@ def _load_checkpoint() -> str | None:
     return None
 
 
-
 def run_etl():
-    conn = _get_db_connection()
-    existing_ids = _get_existing_channel_ids(conn)
+    existing_ids = _get_existing_channel_ids()
     print(f"found {len(existing_ids)} existing channels in RDS")
     raw_channels = _load_raw_from_s3()
     print(f"loaded {len(raw_channels)} total channels from S3")
-    new_channels = [c for c in raw_channels if c.get("channel_id") not in existing_ids] #TODO: faster ways other than one by one iteration (here and in general for this project)
+    new_channels = [c for c in raw_channels if c.get("channel_id") not in existing_ids]
     print(f"{len(new_channels)} new channels to process")
 
     if not new_channels:
         print("no new channels, no etl to do")
-        conn.close()
         return
-    
+
     completed = []
-    
+
     last_id = _load_checkpoint
-    if last_id and last_id in [c["channel_id"] for c in new_channels]:     
+    if last_id and last_id in [c["channel_id"] for c in new_channels]:
         idx = [c["channel_id"] for c in new_channels].index(last_id)
-        new_channels = new_channels[idx:]                     # resume from last position
-        print(f"resuming from checkpoint: {last_id}")         #TODO: more efficient solution? this may iterate through almost all new channels
-    
+        new_channels = new_channels[idx:]
+        print(f"resuming from checkpoint: {last_id}")
+
     for channel in new_channels:
         try:
-            print(f"appending video data for channel: {channel["channel_name"]}")
+            print(f"appending video data for channel: {channel['channel_name']}")
             _append_video_data(channel)
             completed.append(channel)
             _save_checkpoint(channel["channel_id"])
-        except Exception as e: 
+        except Exception as e:
             break
 
     if completed:
@@ -127,12 +99,21 @@ def run_etl():
         df = preprocess_data(df)
         print(f"preprocessing s3 done")
 
-        _insert_into_rds(conn, df, "channels_cleaned", ["channel_id", "channel_name", "description", "topics", "keywords", "videos"])
+        db_manager.insert_dataframe(
+            df,
+            "channels_cleaned",
+            ["channel_id", "channel_name", "description", "topics", "keywords", "videos"]
+        )
         df = build_features(df)
-        _insert_into_rds(conn, df, "channels_final", ["channel_id", "channel_name", "text"])
+        db_manager.insert_dataframe(
+            df,
+            "channels_final",
+            ["channel_id", "channel_name", "text"]
+        )
 
-    conn.close()
+    db_manager.close()
     print("ETL complete")
+
 
 if __name__ == "__main__":
     run_etl()
