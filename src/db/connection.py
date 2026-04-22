@@ -1,10 +1,13 @@
 from pathlib import Path
 from typing import Optional
+import logging
 
 import pandas as pd
 import psycopg2
 from psycopg2.extras import execute_values
 from sqlalchemy import create_engine
+
+logger = logging.getLogger(__name__)
 
 PROJECT_ROOT = Path(__file__).resolve().parent.parent.parent
 FALLBACK_CSV = PROJECT_ROOT / "data" / "processed" / "channels_pp.csv"
@@ -119,7 +122,7 @@ class DatabaseManager:
                 if db_lookup is not None and not db_lookup.empty:
                     return db_lookup
             except Exception as e:
-                print(f"[WARN] DB lookup failed: {e}")
+                logger.warning("DB lookup failed: %s", e)
 
         # Default: use CSV (fast, no network dependency)
         if FALLBACK_CSV.exists():

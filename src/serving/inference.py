@@ -6,6 +6,7 @@ from dotenv import load_dotenv
 PROJECT_ROOT = Path(__file__).resolve().parent.parent.parent
 load_dotenv()
 
+from src import logging_config  # noqa: F401 - sets up logging
 from src.config import settings
 from src.db.connection import db_manager
 from src.data.fetch_data_given_query_channel import get_channel_data
