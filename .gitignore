@@ -24,3 +24,6 @@ todos.txt
 # don't ignore the serving model
 !src/serving/model/
 !src/serving/model/**
+
+#logs
+logs/
