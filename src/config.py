@@ -6,7 +6,7 @@ import os
 
 
 PROJECT_ROOT = Path(__file__).resolve().parent.parent
-load_dotenv()
+load_dotenv() # load here so os.environ works (in _load_api_keys_) works?
 
 
 class Settings(BaseSettings):
