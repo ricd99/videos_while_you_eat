@@ -3,17 +3,15 @@ import pandas as pd
 from pathlib import Path
 from dotenv import load_dotenv
 
-PROJECT_ROOT = Path(__file__).resolve().parent.parent.parent
+PROJECT_ROOT = Path(__file__).resolve().parent.parent.parent    
 load_dotenv()
 
-from src import logging_config  # noqa: F401 - sets up logging
-from src.config import settings
 from src.db.connection import db_manager
 from src.data.fetch_data_given_query_channel import get_channel_data
 from src.data.preprocess_data import preprocess_data
 from src.features.build_features import build_features
+from src.embedding import batch_encode
 
-ct = joblib.load(PROJECT_ROOT / "artifacts" / "column_transformer.pkl")
 nn = joblib.load(PROJECT_ROOT / "artifacts" / "nn_model.pkl")
 
 
@@ -31,6 +29,7 @@ _lookup_table = LookupTable()
 
 
 def predict(channel_name: str) -> list[dict] | dict:
+    
     input_dict = get_channel_data(channel_name)
     if input_dict is None:
         return {"error": f"could not find channel: {channel_name}"}
@@ -38,9 +37,11 @@ def predict(channel_name: str) -> list[dict] | dict:
     df = pd.DataFrame([input_dict])
     df = preprocess_data(df)
     df = build_features(df)
-    df_transformed = ct.transform(df)
+    
+    texts = df["text"].fillna("").tolist()
+    embedding = batch_encode(texts)
 
-    distances, indices = nn.kneighbors(df_transformed)
+    distances, indices = nn.kneighbors(embedding)
 
     df_lookup = _lookup_table.get()
     results = df_lookup.iloc[indices[0]][["channel_name", "channel_id"]].copy()
