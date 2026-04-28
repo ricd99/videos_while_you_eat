@@ -79,7 +79,7 @@ def run_etl():
 
     completed = []
 
-    last_id = _load_checkpoint
+    last_id = _load_checkpoint()
     if last_id and last_id in [c["channel_id"] for c in new_channels]:
         idx = [c["channel_id"] for c in new_channels].index(last_id)
         new_channels = new_channels[idx:]
@@ -90,7 +90,6 @@ def run_etl():
             print(f"appending video data for channel: {channel['channel_name']}")
             _append_video_data(channel)
             completed.append(channel)
-            _save_checkpoint(channel["channel_id"])
         except Exception as e:
             break
 
@@ -110,6 +109,7 @@ def run_etl():
             "channels_final",
             ["channel_id", "channel_name", "text"]
         )
+        _save_checkpoint(completed[-1]["channel_id"])
 
     db_manager.close()
     print("ETL complete")
