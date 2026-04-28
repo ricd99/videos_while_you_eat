@@ -24,26 +24,6 @@ def get_embedding_model(model_name: str = DEFAULT_MODEL):
     """
     return SentenceTransformer(model_name) # autoimplements: device="cuda" if GPU, else "cpu"
 
-def batch_encode(texts: list[str], model_name: str = DEFAULT_MODEL, normalize: bool = True):
-    """
-    Encode a list of text strings into embeddings.
-    
-    Args:
-        texts: List of text strings to encode
-        model_name: Which SentenceTransformer model to use
-        normalize: If True, normalizes embeddings to unit length (important for cosine similarity)
-    
-    Returns:
-        numpy array of shape (len(texts), embedding_dim)
-    
-    Example:
-        >>> texts = ["channel about movies", "cooking tutorial"]
-        >>> embeddings = encode_texts(texts)
-        >>> print(embeddings.shape)  # (2, 768) or similar
-    """
-    model = get_embedding_model(model_name)
-    return model.encode(texts, normalize_embeddings=normalize, show_progress_bar=True)
-
 def encode(text: str, model_name: str = DEFAULT_MODEL, normalize: bool = True):
     """
     Encode a single text string into an embedding.
@@ -62,3 +42,23 @@ def encode(text: str, model_name: str = DEFAULT_MODEL, normalize: bool = True):
     """
     model = get_embedding_model(model_name)
     return model.encode(text, normalize_embeddings=normalize)
+
+def batch_encode(texts: list[str], model_name: str = DEFAULT_MODEL, normalize: bool = True):
+    """
+    Encode a list of text strings into embeddings.
+    
+    Args:
+        texts: List of text strings to encode
+        model_name: Which SentenceTransformer model to use
+        normalize: If True, normalizes embeddings to unit length (important for cosine similarity)
+    
+    Returns:
+        numpy array of shape (len(texts), embedding_dim)
+    
+    Example:
+        >>> texts = ["channel about movies", "cooking tutorial"]
+        >>> embeddings = encode_texts(texts)
+        >>> print(embeddings.shape)  # (2, 768) or similar
+    """
+    model = get_embedding_model(model_name)
+    return model.encode(texts, normalize_embeddings=normalize, show_progress_bar=True, convert_to_numpy=True)
