@@ -33,7 +33,7 @@ class DatabaseManager:
         from src.config import settings
         return create_engine(settings.rds_url)
 
-    def get_connection(self) -> psycopg2.connect:
+    def get_connection(self) -> psycopg2.extensions.connection:
         if self._conn is None or self._conn.closed:
             self._conn = self.connect()
         return self._conn
@@ -43,7 +43,7 @@ class DatabaseManager:
             self._engine = self.create_engine()
         return self._engine
 
-    def execute(self, query: str, params: tuple = None):
+    def execute(self, query: str, params: tuple | None):
         conn = self.get_connection()
         cur = conn.cursor()
         if params:
@@ -92,7 +92,8 @@ class DatabaseManager:
             "SELECT EXISTS (SELECT FROM information_schema.tables WHERE table_name = %s)",
             (table_name,)
         )
-        exists = cur.fetchone()[0]
+        result = cur.fetchone()
+        exists = result[0] if result else False
         cur.close()
         return exists
 
