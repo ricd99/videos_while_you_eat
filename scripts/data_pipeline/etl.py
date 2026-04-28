@@ -13,7 +13,7 @@ from src.config import settings
 from src.db.connection import db_manager
 from src.data.preprocess_data import preprocess_data
 from src.features.build_features import build_features
-from src.data.fetch_data_given_query_channel import _get_video_features
+from src.data.fetch_data_given_query_channel import _get_channel_data
 
 s3 = boto3.client("s3", region_name="us-west-2")
 
@@ -45,7 +45,7 @@ def _append_video_data(channel):
     uploads = channel.get("uploads")
     if uploads:
         print(f"fetching videos for {channel.get('channel_name')}")
-        channel["videos"] = _get_video_features(uploads)
+        channel["videos"] = _get_channel_data(uploads)
     else:
         channel["videos"] = []
 

@@ -6,7 +6,7 @@ from src.youtube.client import yt_client
 logger = logging.getLogger(__name__)
 
 
-def get_channel_data(channel_name: str) -> dict | None:
+def _get_channel_data(channel_name: str) -> dict | None:
     results = yt_client.search_channels(channel_name, max_results=1)
 
     if not results:
