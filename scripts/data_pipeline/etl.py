@@ -65,7 +65,7 @@ def _load_checkpoint() -> str | None:
     return None
 
 
-def run_etl():
+def run_etl() -> int:
     existing_ids = _get_existing_channel_ids()
     print(f"found {len(existing_ids)} existing channels in RDS")
     raw_channels = _load_raw_from_s3()
@@ -75,7 +75,7 @@ def run_etl():
 
     if not new_channels:
         print("no new channels, no etl to do")
-        return
+        return 0
 
     completed = []
 
@@ -112,7 +112,7 @@ def run_etl():
         _save_checkpoint(completed[-1]["channel_id"])
 
     db_manager.close()
-    print("ETL complete")
+    return len(completed)
 
 
 if __name__ == "__main__":

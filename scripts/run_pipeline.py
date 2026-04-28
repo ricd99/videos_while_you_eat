@@ -10,11 +10,13 @@ import argparse
 import mlflow
 from sklearn.model_selection import train_test_split
 
-
 # Allows imports from src/ directory structure
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
 
-from src.data.load_data import load_data
+from scripts.data_pipeline.collect_channels import collect
+from scripts.data_pipeline.etl import run_etl
+from src.db.connection import db_manager
+
 from src.data.preprocess_data import preprocess_data
 from src.features.build_features import build_features
 from src.utils.validate_data import validate_data   
@@ -38,9 +40,21 @@ def main(args):
     mlflow.set_experiment(args.experiment)
 
     with mlflow.start_run():
+        # === STAGE 0: Collect New Channels ===
+        print("collecting new channels from yt api")
+        collect()
+
+         # === STAGE 0.5: ETL  ===
+        print("running etl")
+        new_channel_count = run_etl()
+
+        if new_channel_count == 0:
+            print("no new channels found. skipping model training")
+            return
+
         # === STAGE 1: Data Loading ===
-        print("Loading data...")
-        df = load_data(args.input)  
+        print("Loading data from RDS...")
+        df = db_manager.fetch_dataframe("SELECT * FROM channels_final")
         print(f"Data loaded: {df.shape[0]} rows, {df.shape[1]} columns")
 
 
