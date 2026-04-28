@@ -1,8 +1,8 @@
-from sklearn.metrics import classification_report, confusion_matrix
 import numpy as np
+from sklearn.neighbors import NearestNeighbors
 
-def evaluate_model(nn, df):
-    distances, _ = nn.kneighbors(df)
+def evaluate_model(nn: NearestNeighbors, X: np.ndarray) -> tuple[float, float]:
+    distances, _ = nn.kneighbors(X)
     mean_dist = distances.mean()
     median_dist = np.median(distances)
 
