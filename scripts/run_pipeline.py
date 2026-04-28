@@ -159,8 +159,6 @@ def main(args):
 
 if __name__ == "__main__":
     p = argparse.ArgumentParser(description="Run youtube pipeline with NewarestNeighbors + MLflow")
-    p.add_argument("--input", type=str, required=True,
-                   help="path to CSV (e.g., data/processed/ve_channels/ve_with_features.json)")
     p.add_argument("--experiment", type=str, default="Youtube Recommender")
     p.add_argument("--mlflow_uri", type=str, default=None)
 
