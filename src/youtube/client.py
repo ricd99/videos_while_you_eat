@@ -8,6 +8,9 @@ from src.config import settings
 
 logger = logging.getLogger(__name__)
 
+class AllAPIKeysExhaustedError(Exception):
+    """Raised when all YouTube API keys have exceeded quota."""
+    pass
 
 class YouTubeClient:
     def __init__(self):
@@ -45,7 +48,7 @@ class YouTubeClient:
                         continue
                     else:
                         logger.error("All API keys exhausted")
-                        raise
+                        raise AllAPIKeysExhaustedError("all API keys have exceeded quota")
                 raise
         raise RuntimeError("Max retries exceeded")
 
@@ -163,6 +166,7 @@ class YouTubeClient:
             pages_fetched += 1
 
         return videos
+    
 
 
 yt_client = YouTubeClient() #singleton. if imported multiple times, still works, as python caches client.py module after first run.

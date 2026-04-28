@@ -11,6 +11,7 @@ load_dotenv()
 
 from src.config import settings
 from src.youtube.client import yt_client
+from src.youtube.client import AllAPIKeysExhaustedError
 
 s3 = boto3.client("s3", region_name="us-west-2")
 
@@ -18,19 +19,15 @@ with open(PROJECT_ROOT / "data" / "consts" / "yt_api_queries.json", "r") as f:
     QUERIES = json.load(f)
 
 
-def _search_channels(query: str, seen: set) -> list:
+def _search_channels(query: str, seen: set) -> list:   # bubbles up errors raised by yt_client.search_channels to collect()
     collected = []
-    try:
-        results = yt_client.search_channels(query)
-        for item in results:
-            cid = item["channel_id"]
-            if cid not in seen:
-                seen.add(cid)
-                collected.append(item)
-    except Exception as e:
-        print(f"search error for '{query}': {e}")
+    results = yt_client.search_channels(query)
+    for item in results:
+        cid = item["channel_id"]
+        if cid not in seen:
+            seen.add(cid)
+            collected.append(item)
     return collected
-
 
 def _get_channel_details(channel_ids: list) -> list:
     return yt_client.get_channel_details(channel_ids)
@@ -53,10 +50,16 @@ def collect():
     total = 0
 
     for query in QUERIES:
-        print(f"searching: {query}")
-        candidates = _search_channels(query, seen)
-        if not candidates:
-            continue
+        try:
+            print(f"searching: {query}")
+            candidates = _search_channels(query, seen)
+            if not candidates:
+                continue
+        except AllAPIKeysExhaustedError:
+            print(f"all api keys exhausted")
+            break 
+        except Exception as e:
+            print(f"search error for '{query}': {e}")
 
         channel_ids = [{"channel_id": c["channel_id"]} for c in candidates]
         detailed = _get_channel_details(channel_ids)
