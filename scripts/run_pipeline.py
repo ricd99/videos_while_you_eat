@@ -136,7 +136,7 @@ def main(args):
 
 
         mlflow.log_artifact(os.path.join(artifacts_dir, "nn_model.pkl"))
-        mlflow.log_artifact(os.path.join(artifacts_dir, "column_transformer.pkl"))
+        mlflow.log_artifact(os.path.join(artifacts_dir, "embeddings.pkl"))
         mlflow.log_artifact(os.path.join(artifacts_dir, "df_lookup.pkl"))
         print("Model and emebddings, and lookup table saved")
 
