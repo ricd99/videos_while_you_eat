@@ -18,7 +18,7 @@ from src.data.load_data import load_data
 from src.data.preprocess_data import preprocess_data
 from src.features.build_features import build_features
 from src.utils.validate_data import validate_data   
-
+from src.embedding import batch_encode
 from src.models.train import train_model
 from src.models.tune import tune_model
 from src.models.evaluate import evaluate_model
@@ -108,7 +108,7 @@ def main(args):
         # === STAGE 5: Final Training ===
         print("Training optimized Nearest Neighbors model...")
         t0 = time.time()
-        nn, ct = train_model(df_train, df_test, params=best_params)
+        nn, embeddings, df_lookup = train_model(df_train, params=best_params)
         train_time = time.time() - t0
         mlflow.log_metric("train_time", train_time)
         print(f"Model trained in {train_time:.2f} seconds")
@@ -116,8 +116,9 @@ def main(args):
         
         # === STAGE 6: Evaluating===
         print("Evaluating model...")
-        df_test_pp = ct.transform(df_test)
-        mean_dist, median_dist = evaluate_model(nn, df_test_pp)
+        test_texts = df_test["text"].fillna("").tolist()
+        test_embeddings = batch_encode(test_texts)
+        mean_dist, median_dist = evaluate_model(nn, test_embeddings)
         mlflow.log_metric("mean_nn_distance", mean_dist)
         mlflow.log_metric("median_nn_distance", median_dist)
         print(f"Mean distance: {mean_dist}")
@@ -128,11 +129,16 @@ def main(args):
         print("Saving model...")
         artifacts_dir = os.path.join(project_root, "artifacts")
         os.makedirs(artifacts_dir, exist_ok=True)
+
         joblib.dump(nn, os.path.join(artifacts_dir, "nn_model.pkl"))
-        joblib.dump(ct, os.path.join(artifacts_dir, "column_transformer.pkl"))
+        joblib.dump(embeddings, os.path.join(artifacts_dir, "embeddings.pkl"))
+        joblib.dump(df_lookup, os.path.join(artifacts_dir, "df_lookup.pkl"))
+
+
         mlflow.log_artifact(os.path.join(artifacts_dir, "nn_model.pkl"))
         mlflow.log_artifact(os.path.join(artifacts_dir, "column_transformer.pkl"))
-        print("Model and transformer saved")
+        mlflow.log_artifact(os.path.join(artifacts_dir, "df_lookup.pkl"))
+        print("Model and emebddings, and lookup table saved")
 
        
 

@@ -1,5 +1,4 @@
 import mlflow 
-from sklearn.neighbors import NearestNeighbors
 import numpy as np
 
 def tune_model(df_train: np.ndarray, df_test):

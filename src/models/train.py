@@ -9,11 +9,7 @@ import pandas as pd
 from sklearn.neighbors import NearestNeighbors
 from src.embedding import batch_encode
 
-class TrainParams(TypedDict):
-    n_neighbors: int        # number of neighbors (k)
-    metric: str             # Distance metric ("cosine", euclidean")
-
-def train_model(df_train: pd.DataFrame, params: TrainParams) -> tuple[NearestNeighbors, np.ndarray, pd.DataFrame]:                       
+def train_model(df_train: pd.DataFrame, params: dict) -> tuple[NearestNeighbors, np.ndarray, pd.DataFrame]:                       
     """
     Train NearestNeighbors model on sentence embeddings.
     Args:
