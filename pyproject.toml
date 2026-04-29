@@ -3,9 +3,10 @@ name = "videos-while-you-eat"
 version = "0.1.0"
 description = "Add your description here"
 readme = "README.md"
-requires-python = ">=3.14"
+requires-python = ">=3.12"
 dependencies = [
     "boto3>=1.42.96",
+    "faiss-cpu>=1.13.2",
     "fastapi>=0.136.1",
     "google-api-python-client>=2.194.0",
     "gradio>=6.13.0",
