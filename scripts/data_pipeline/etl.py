@@ -14,7 +14,7 @@ from src.config import settings
 from src.db.connection import db_manager
 from src.data.preprocess_data import preprocess_data
 from src.features.build_features import build_features
-from src.data.fetch_data_given_query_channel import _get_channel_data
+from src.data.fetch_data_given_query_channel import _get_channel_data, _get_channel_videos
 
 s3 = boto3.client("s3", region_name="us-west-2")
 
@@ -40,15 +40,6 @@ def _load_raw_from_s3() -> list:
         all_channels.extend(channels)
 
     return all_channels
-
-
-def _append_video_data(channel):
-    uploads = channel.get("uploads")
-    if uploads:
-        print(f"fetching videos for {channel.get('channel_name')}")
-        channel["videos"] = _get_channel_data(uploads)
-    else:
-        channel["videos"] = []
 
 
 CHECKPOINT_FILE = PROJECT_ROOT / "data" / "misc" / "etl_checkpoint.json"
@@ -90,7 +81,7 @@ def run_etl() -> int:
     for channel in new_channels:
         try:
             print(f"appending video data for channel: {channel['channel_name']}")
-            _append_video_data(channel)
+            _get_channel_videos(channel)
             completed.append(channel)
         except Exception as e:
             break

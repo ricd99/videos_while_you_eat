@@ -27,3 +27,23 @@ def _get_channel_data(channel_name: str) -> dict | None:
 
     details.pop("uploads", None)
     return details
+
+
+def _get_channel_videos(channel: dict) -> dict:
+    """
+    Append video data to a channel dict using uploads playlist ID.
+    Used in ETL pipeline where we already have channel data from S3.
+    
+    Args:
+        channel: Dict with 'uploads' (playlist ID) and 'channel_id'
+    
+    Returns:
+        Channel dict with added 'videos' field
+    """
+    uploads = channel.get("uploads")
+    if uploads:
+        logger.info("fetching videos for channel: %s", channel.get("channel_name"))
+        channel["videos"] = yt_client.get_videos(uploads, max_videos=settings.max_videos_per_channel)
+    else:
+        channel["videos"] = []
+    return channel
