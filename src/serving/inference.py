@@ -13,25 +13,42 @@ from src.data.preprocess_data import preprocess_data
 from src.features.build_features import build_features
 from src.embedding import batch_encode
 
-nn = joblib.load(PROJECT_ROOT / "artifacts" / "nn_model.pkl")
+# Lazy loading - loaded on first request, not at import
+_nn = None
+_embeddings = None
+_lookup_df = None
 
+def _load_artifacts():
+    """Load model artifacts on first request."""
+    global _nn, _embeddings, _lookup_df
+    
+    if _nn is None:
+        artifacts = PROJECT_ROOT / "artifacts"
+        
+        # Load with error handling
+        try:
+            _nn = joblib.load(artifacts / "nn_model.pkl")
+        except FileNotFoundError:
+            raise RuntimeError("Model not found. Run training pipeline first.")
+        
+        try:
+            _embeddings = joblib.load(artifacts / "embeddings.pkl")
+        except FileNotFoundError:
+            raise RuntimeError("Embeddings not found. Run training pipeline first.")
+        
+        try:
+            _lookup_df = joblib.load(artifacts / "df_lookup.pkl")
+        except FileNotFoundError:
+            raise RuntimeError("Lookup not found. Run training pipeline first.")
+    
+    return _nn, _embeddings, _lookup_df
 
-class LookupTable:
-    def __init__(self):
-        self._df = None
-
-    def get(self) -> pd.DataFrame:
-        if self._df is None:
-            self._df = db_manager.load_lookup_table_with_fallback()
-        return self._df
-
-
-_lookup_table = LookupTable()
 
 
 def predict(channel_name: str) -> list[dict] | dict:
-    
-    input_dict = get_channel_data(channel_name)
+    nn, embeddings, df_lookup = _load_artifacts()
+
+    input_dict = _get_channel_data(channel_name)
     if input_dict is None:
         return {"error": f"could not find channel: {channel_name}"}
 
@@ -44,7 +61,6 @@ def predict(channel_name: str) -> list[dict] | dict:
 
     distances, indices = nn.kneighbors(embedding)
 
-    df_lookup = _lookup_table.get()
     results = df_lookup.iloc[indices[0]][["channel_name", "channel_id"]].copy()
     results["similarity_score"] = distances[0]
     return results.to_dict(orient="records")

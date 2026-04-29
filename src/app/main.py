@@ -89,14 +89,11 @@ demo = gr.Interface(
     this model will give you similar ones.
     """,
     examples=[
-        # High churn risk example
-        ["Female", "No", "No", "Yes", "No", "Fiber optic", "No", "No", "No", 
-         "No", "Yes", "Yes", "Month-to-month", "Yes", "Electronic check", 
-         1, 85.0, 85.0],
-        # Low churn risk example  
-        ["Male", "Yes", "Yes", "Yes", "Yes", "DSL", "Yes", "Yes", "Yes",
-         "Yes", "No", "No", "Two year", "No", "Credit card (automatic)",
-         60, 45.0, 2700.0]
+        ["Every Frame a Painting"],
+        ["NerdCore"],
+        ["Game Maker's Toolkit"],
+        ["Lessons from the Dead"],
+        ["YourMounds"],
     ],
 )
 
