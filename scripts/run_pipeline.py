@@ -48,9 +48,9 @@ def main(args):
         print("running etl")
         new_channel_count = run_etl()
 
-        if new_channel_count == 0:
-            print("no new channels found. skipping model training")
-            return
+        # if new_channel_count == 0:                                        #TODO: uncomment once debugging finished
+        #     print("no new channels found. skipping model training")
+        #     return
 
         # === STAGE 1: Data Loading ===
         print("Loading data from RDS...")
