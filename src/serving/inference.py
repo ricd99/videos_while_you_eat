@@ -2,12 +2,13 @@ import joblib
 import pandas as pd
 from pathlib import Path
 from dotenv import load_dotenv
+import faiss
 
 PROJECT_ROOT = Path(__file__).resolve().parent.parent.parent    
 load_dotenv()
 
 from src.db.connection import db_manager
-from src.data.fetch_data_given_query_channel import get_channel_data
+from src.data.fetch_data_given_query_channel import _get_channel_data
 from src.data.preprocess_data import preprocess_data
 from src.features.build_features import build_features
 from src.embedding import batch_encode
