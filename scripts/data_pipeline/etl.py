@@ -4,6 +4,7 @@ import pandas as pd
 from dotenv import load_dotenv
 import sys
 from pathlib import Path
+import os
 
 PROJECT_ROOT = Path(__file__).resolve().parent.parent.parent
 sys.path.insert(0, str(PROJECT_ROOT))
@@ -54,6 +55,7 @@ CHECKPOINT_FILE = PROJECT_ROOT / "data" / "misc" / "etl_checkpoint.json"
 
 
 def _save_checkpoint(channel_id: str):
+    os.makedirs(CHECKPOINT_FILE.parent, exist_ok=True) 
     with open(CHECKPOINT_FILE, "w") as f:
         json.dump({"last_channel_id": channel_id}, f)
 
