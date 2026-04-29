@@ -40,11 +40,11 @@ def main(args):
     mlflow.set_experiment(args.experiment)
 
     with mlflow.start_run():
-        # === STAGE 0: Collect New Channels ===
+        # === STAGE 1: Collect New Channels ===
         print("collecting new channels from yt api")
         collect()
 
-         # === STAGE 0.5: ETL  ===
+         # === STAGE 2: ETL  ===
         print("running etl")
         new_channel_count = run_etl()
 
@@ -52,25 +52,11 @@ def main(args):
         #     print("no new channels found. skipping model training")
         #     return
 
-        # === STAGE 1: Data Loading ===
+        # === STAGE 3: Data Loading ===
         print("Loading data from RDS...")
-        df = db_manager.fetch_dataframe("SELECT * FROM channels_final")
-        print(f"Data loaded: {df.shape[0]} rows, {df.shape[1]} columns")
+        df_enc = db_manager.fetch_dataframe("SELECT * FROM channels_final")
+        print(f"Data loaded: {df_enc.shape[0]} rows, {df_enc.shape[1]} columns")
 
-
-        # === STAGE 2: Data Preprocessing ===
-        print("Preprocessing data...")
-        df_pp = preprocess_data(df) 
-    
-        processed_path = os.path.join(project_root, "data", "processed", "channels_pp.csv") # Save processed dataset for reproducibility and debugging
-        os.makedirs(os.path.dirname(processed_path), exist_ok=True)
-        df_pp.to_csv(processed_path, index=False)
-        print(f"Processed dataset saved to {processed_path} | Shape: {df_pp.shape}")
-
-        # === STAGE 3: Feature Engineering ===
-        print("Building features...")
-        df_enc = build_features(df_pp) 
-        print(f"Feature engineering completed: {df_enc.shape[1]} features")
 
         #Save Feature Metadata for Serving Consistency
         # This ensures serving pipeline uses exact same features in exact same order
