@@ -96,13 +96,17 @@ def run_etl() -> int:
             "channels_cleaned",
             ["channel_id", "channel_name", "description", "topics", "keywords", "videos"]
         )
+        print(f"data inserted into channels_cleaned")
+        print(f"building features...")
         df = build_features(df)
+        print(f"features finished building")
         db_manager.insert_dataframe(
             df,
             "channels_final",
             ["channel_id", "channel_name", "text"]
         )
         _save_checkpoint(completed[-1]["channel_id"])
+        print(f"data inserted into channels_final")
 
     db_manager.close()
     return len(completed)
