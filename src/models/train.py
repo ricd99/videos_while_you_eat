@@ -3,7 +3,6 @@ Training module for Nearest Neighbors model using sentence embeddings.
 This replaces CountVectorizer with SentenceTransformer for better semantic
 understanding of channel text (descriptions, topics, keywords, video titles).
 """
-from typing import TypedDict
 import numpy as np
 import pandas as pd
 from sklearn.neighbors import NearestNeighbors

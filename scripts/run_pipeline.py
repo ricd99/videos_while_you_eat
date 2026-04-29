@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-Runs sequentially: load → validate → preprocess → feature engineering
+Runs sequentially: collect → ETL → train → evaluate
 """
 
 import os
@@ -16,10 +16,8 @@ sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
 from scripts.data_pipeline.collect_channels import collect
 from scripts.data_pipeline.etl import run_etl
 from src.db.connection import db_manager
-
-from src.data.preprocess_data import preprocess_data
 from src.features.build_features import build_features
-from src.utils.validate_data import validate_data   
+from src.utils.validate_data import validate_data
 from src.embedding import batch_encode
 from src.models.train import train_model
 from src.models.tune import tune_model
@@ -27,11 +25,9 @@ from src.models.evaluate import evaluate_model
 from pathlib import Path
 
 
-
 def main(args):
     """
     Main training pipeline function that orchestrates the complete ML workflow.
-    
     """
     project_root = Path(__file__).resolve().parent.parent
     mlruns_path = project_root / "mlruns"
@@ -44,11 +40,11 @@ def main(args):
         print("collecting new channels from yt api")
         collect()
 
-         # === STAGE 2: ETL  ===
+        # === STAGE 2: ETL ===
         print("running etl")
         new_channel_count = run_etl()
 
-        # if new_channel_count == 0:                                        #TODO: uncomment once debugging finished
+        # if new_channel_count == 0:                                        #TODO: uncomment once debugging done
         #     print("no new channels found. skipping model training")
         #     return
 
@@ -57,9 +53,7 @@ def main(args):
         df_enc = db_manager.fetch_dataframe("SELECT * FROM channels_final")
         print(f"Data loaded: {df_enc.shape[0]} rows, {df_enc.shape[1]} columns")
 
-
         #Save Feature Metadata for Serving Consistency
-        # This ensures serving pipeline uses exact same features in exact same order
         import json, joblib
         artifacts_dir = os.path.join(project_root, "artifacts")
         os.makedirs(artifacts_dir, exist_ok=True)
@@ -79,8 +73,8 @@ def main(args):
         print(f"Saved {len(feature_cols)} feature columns for serving consistency")
 
 
-        # === STAGE 3.1: Data Validation (right before trainng model) ===
-        print("Validating data quality with Great Expectations...")
+        # === STAGE 3.1: Data Validation ===
+        print("Validating data quality...")
         is_valid, failed = validate_data(df_enc)
         mlflow.log_metric("data_quality_pass", int(is_valid))
 
@@ -92,17 +86,18 @@ def main(args):
             print("Data validation passed. Logged to MLflow.")
 
 
-        # === STAGE 4: Model Training and Tuning ===
-        print("Training and tuning NearestNeighbors model...")
+        # === STAGE 4: Model Training (Tuning + Training) ===
+        print("Training Nearest Neighbors model...")
 
         df_train, df_test = train_test_split(df_enc, train_size=0.98, random_state=67)
         df_train = df_train.reset_index(drop=True) 
         df_test = df_test.reset_index(drop=True)
         print(f"Train: {df_train.shape[0]} samples | Test: {df_test.shape[0]} samples")
 
+        # Get hyperparameters (currently returns hardcoded values - could be enhanced with Optuna)
         best_params = tune_model(df_train, df_test)
         mlflow.log_params(best_params)
-        print(f"Tuning complete. Best params: {best_params}")
+        print(f"Hyperparameters: {best_params}")
 
 
         # === STAGE 5: Final Training ===
@@ -122,29 +117,24 @@ def main(args):
         mlflow.log_metric("mean_nn_distance", mean_dist)
         mlflow.log_metric("median_nn_distance", median_dist)
         print(f"Mean distance: {mean_dist}")
-        print(f"Median distnace: {median_dist}")
+        print(f"Median distance: {median_dist}")
 
 
         # === STAGE 7: Save Model===
         print("Saving model...")
-        artifacts_dir = os.path.join(project_root, "artifacts")
-        os.makedirs(artifacts_dir, exist_ok=True)
-
         joblib.dump(nn, os.path.join(artifacts_dir, "nn_model.pkl"))
         joblib.dump(embeddings, os.path.join(artifacts_dir, "embeddings.pkl"))
         joblib.dump(df_lookup, os.path.join(artifacts_dir, "df_lookup.pkl"))
 
-
         mlflow.log_artifact(os.path.join(artifacts_dir, "nn_model.pkl"))
         mlflow.log_artifact(os.path.join(artifacts_dir, "embeddings.pkl"))
         mlflow.log_artifact(os.path.join(artifacts_dir, "df_lookup.pkl"))
-        print("Model and emebddings, and lookup table saved")
-
-       
+        print("Model and embeddings and lookup table saved")
+        
 
 
 if __name__ == "__main__":
-    p = argparse.ArgumentParser(description="Run youtube pipeline with NewarestNeighbors + MLflow")
+    p = argparse.ArgumentParser(description="Run youtube pipeline with NearestNeighbors + Sentence Embeddings + MLflow")
     p.add_argument("--experiment", type=str, default="Youtube Recommender")
     p.add_argument("--mlflow_uri", type=str, default=None)
 
