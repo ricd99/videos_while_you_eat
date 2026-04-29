@@ -168,6 +168,6 @@ if __name__ == "__main__":
 """
 # Use this below to run the pipeline:
 
-python scripts/run_pipeline.py --input data/processed/ve_channels/ve_with_features.json
+python scripts/run_pipeline.py
 
 """
