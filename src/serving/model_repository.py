@@ -1,7 +1,9 @@
 """
 Lightweight, canonical artifact loader for serving.
 
-Phase 1: Skeleton implementation. The real loading logic will be filled in Phase 2.
+Phase 2: Full loader implementation.
+This replaces the initial skeleton with a concrete, cached loader that reads
+artifacts from artifacts/run-<timestamp>/ and honors a config-based pointer.
 """
 from __future__ import annotations
 
@@ -35,6 +37,14 @@ def _current_run_path() -> Path:
     return root / run_id
 
 
+_cache = {
+    "nn_model": None,
+    "embeddings": None,
+    "lookup_df": None,
+    "feature_columns": None,
+}
+
+
 def _load_artifact(name: str):
     path = _current_run_path() / name
     if not path.exists():
@@ -42,24 +52,48 @@ def _load_artifact(name: str):
     return joblib_load(path)
 
 
+def _load_all_cached():
+    global _cache
+    if _cache["nn_model"] is None:
+        _cache["nn_model"] = _load_artifact("nn_model.pkl")
+    if _cache["embeddings"] is None:
+        _cache["embeddings"] = _load_artifact("embeddings.pkl")
+    if _cache["lookup_df"] is None:
+        _cache["lookup_df"] = _load_artifact("df_lookup.pkl")
+    if _cache["feature_columns"] is None:
+        # feature_columns.json is read directly (not a joblib dump)
+        feat_path = _current_run_path() / "feature_columns.json"
+        if feat_path.exists():
+            with open(feat_path, "r") as f:
+                _cache["feature_columns"] = _json_load(f)
+        else:
+            _cache["feature_columns"] = None
+    return _cache["nn_model"], _cache["embeddings"], _cache["lookup_df"], _cache["feature_columns"]
+
+
+def _json_load(fp):
+    import json
+    return json.load(fp)
+
+
 def get_nn_model():
-    return _load_artifact("nn_model.pkl")
+    nn, _, _, _ = _load_all_cached()
+    return nn
 
 
 def get_embeddings():
-    return _load_artifact("embeddings.pkl")
+    _, emb, _, _ = _load_all_cached()
+    return emb
 
 
 def get_lookup_df():
-    return _load_artifact("df_lookup.pkl")
+    _, _, df, _ = _load_all_cached()
+    return df
 
 
 def get_feature_columns():
-    p = _current_run_path() / "feature_columns.json"
-    if p.exists():
-        with open(p, "r") as f:
-            return json.load(f)
-    return None
+    _, _, _, cols = _load_all_cached()
+    return cols
 
 
 __all__ = ["get_nn_model", "get_embeddings", "get_lookup_df", "get_feature_columns"]
