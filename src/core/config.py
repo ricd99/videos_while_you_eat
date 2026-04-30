@@ -5,7 +5,7 @@ from dotenv import load_dotenv
 import os
 
 
-PROJECT_ROOT = Path(__file__).resolve().parent.parent
+PROJECT_ROOT = Path(__file__).resolve().parent.parent.parent
 load_dotenv() # load here so os.environ works (in _load_api_keys_) works?
 
 

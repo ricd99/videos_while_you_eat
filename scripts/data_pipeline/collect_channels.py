@@ -9,7 +9,7 @@ PROJECT_ROOT = Path(__file__).resolve().parent.parent.parent
 sys.path.insert(0, str(PROJECT_ROOT))
 load_dotenv()
 
-from src.config import settings
+from src.core.config import settings
 from src.youtube.client import yt_client
 from src.youtube.client import AllAPIKeysExhaustedError
 

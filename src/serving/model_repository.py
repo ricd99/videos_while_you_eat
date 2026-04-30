@@ -11,7 +11,7 @@ import json
 from pathlib import Path
 
 from joblib import load as joblib_load
-from src.config import settings
+from src.core.config import settings
 
 
 def _current_run_id() -> str:
@@ -20,7 +20,7 @@ def _current_run_id() -> str:
         return settings.latest_artifacts_run
 
     # Fallback to a lightweight latest_run.txt in the artifacts root
-    artifacts_root = Path(getattr(settings, "artifacts_root", Path.cwd() / "artifacts"))
+    artifacts_root = getattr(settings, "artifacts_root")
     latest_path = artifacts_root / "latest_run.txt"
     if latest_path.exists():
         try:
@@ -32,7 +32,7 @@ def _current_run_id() -> str:
 
 
 def _current_run_path() -> Path:
-    root = Path(getattr(settings, "artifacts_root", Path.cwd() / "artifacts"))
+    root = getattr(settings, "artifacts_root", Path.cwd() / "artifacts")
     run_id = _current_run_id()
     return root / run_id
 

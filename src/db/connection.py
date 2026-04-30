@@ -19,7 +19,7 @@ class DatabaseManager:
         self._conn = None
 
     def connect(self):
-        from src.config import settings
+        from src.core.config import settings
         return psycopg2.connect(
             host=settings.rds_host,
             port=5432,
@@ -30,7 +30,7 @@ class DatabaseManager:
         )
 
     def create_engine(self):
-        from src.config import settings
+        from src.core.config import settings
         return create_engine(settings.rds_url)
 
     def get_connection(self) -> psycopg2.extensions.connection:

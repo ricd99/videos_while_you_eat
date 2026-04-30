@@ -4,7 +4,7 @@ from typing import Optional
 from googleapiclient.discovery import build
 from googleapiclient.errors import HttpError
 
-from src.config import settings
+from src.core.config import settings
 
 logger = logging.getLogger(__name__)
 

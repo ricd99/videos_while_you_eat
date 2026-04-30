@@ -6,7 +6,7 @@ from pathlib import Path
 import pandas as pd
 import numpy as np
 
-from src.config import settings
+from src.core.config import settings
 
 
 def _prepare_run(tmp_path: Path, run_id: str):
