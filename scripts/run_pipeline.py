@@ -63,15 +63,8 @@ def main(args):
         with open(os.path.join(artifacts_dir, "feature_columns.json"), "w") as f:
             json.dump(feature_cols, f)
 
-        mlflow.log_text("\n".join(feature_cols), artifact_file="feature_columns.txt")
-
-        preprocessing_artifact = {
-            "feature_columns": feature_cols,  
-        }
-        joblib.dump(preprocessing_artifact, os.path.join(artifacts_dir, "preprocessing.pkl"))
-        mlflow.log_artifact(os.path.join(artifacts_dir, "preprocessing.pkl"))
+        mlflow.log_text("\n".join(feature_cols), artifact_file="feature_columns.json")          #TODO: deal with mlflow
         print(f"Saved {len(feature_cols)} feature columns for serving consistency")
-
 
         # === STAGE 3.1: Data Validation ===
         print("Validating data quality...")
