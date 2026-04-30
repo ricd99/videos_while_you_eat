@@ -37,7 +37,7 @@ def test_model_repository_loads_from_run_folder(tmp_path, monkeypatch, multiple_
     settings.latest_artifacts_run = run_id
 
     # Import after setting config to ensure loader resolves path
-    from src.serving.model_repository import (
+    from serving.artifact_loader import (
         get_nn_model,
         get_lookup_df,
         get_embeddings,

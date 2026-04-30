@@ -1,10 +1,3 @@
-"""
-Lightweight, canonical artifact loader for serving.
-
-Phase 2: Full loader implementation.
-This replaces the initial skeleton with a concrete, cached loader that reads
-artifacts from artifacts/run-<timestamp>/ and honors a config-based pointer.
-"""
 from __future__ import annotations
 
 import json

@@ -12,7 +12,7 @@ from src.data.fetch_data_given_query_channel import _get_channel_data
 from src.data.preprocess_data import preprocess_data
 from src.features.build_features import build_features
 from src.embedding import batch_encode
-from src.serving.model_repository import get_nn_model, get_lookup_df, get_feature_columns
+from serving.artifact_loader import get_nn_model, get_lookup_df, get_feature_columns
 
 # Lazy loading - loaded on first request, not at import
 _nn = None
