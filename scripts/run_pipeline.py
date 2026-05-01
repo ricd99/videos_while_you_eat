@@ -123,6 +123,27 @@ def main(args):
         mlflow.log_artifact(os.path.join(artifacts_dir, "embeddings.pkl"))
         mlflow.log_artifact(os.path.join(artifacts_dir, "df_lookup.pkl"))
         print("Model and embeddings and lookup table saved")
+
+        # === STAGE 8: Upload to Hugging Face Hub ===
+        print("Uploading artifacts to Hugging Face Hub...")
+        from huggingface_hub import HfApi
+        api = HfApi()
+
+        hf_repo_id = os.getenv("HF_REPO_ID", "ricd99/ytrec-artifacts")
+
+        # Upload each artifact
+        artifacts_to_upload = ["nn_model.pkl", "embeddings.pkl", "df_lookup.pkl", "feature_columns.json"]
+        for filename in artifacts_to_upload:
+            filepath = os.path.join(artifacts_dir, filename)
+            if os.path.exists(filepath):
+                api.upload_file(
+                    path_or_fileobj=filepath,
+                    path_in_repo=filename,
+                    repo_id=hf_repo_id,
+                )
+                print(f"Uploaded {filename} to {hf_repo_id}")
+
+        print("Artifacts uploaded to Hugging Face Hub")
         
 
 

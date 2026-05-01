@@ -11,6 +11,7 @@ dependencies = [
     "google-api-python-client>=2.194.0",
     "gradio>=6.13.0",
     "great-expectations>=1.17.0",
+    "huggingface-hub>=0.32.0",
     "joblib>=1.5.3",
     "mlflow>=3.11.1",
     "mlflow-skinny>=3.11.1",
