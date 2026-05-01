@@ -12,14 +12,13 @@ from src.data.fetch_data_given_query_channel import _get_channel_data
 from src.data.preprocess_data import preprocess_data
 from src.features.build_features import build_features
 from src.embedding import batch_encode
-from src.serving.artifact_loader import get_nn_model, get_lookup_df, get_feature_columns
+from src.serving.artifact_loader import get_nn_model, get_lookup_df
 
 # Lazy loading - loaded on first request, not at import
 _nn = None
 _lookup_df = None
 
 def _load_artifacts():
-    """Load model artifacts on first request using the canonical loader."""
     global _nn, _lookup_df
     if _nn is None:
         _nn = get_nn_model()

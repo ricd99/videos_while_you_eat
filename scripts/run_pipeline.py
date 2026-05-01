@@ -8,6 +8,8 @@ import sys
 import time
 import argparse
 import mlflow
+import json, joblib
+from datetime import datetime
 from sklearn.model_selection import train_test_split
 
 # Allows imports from src/ directory structure
@@ -55,9 +57,14 @@ def main(args):
         print(f"Data loaded: {df_enc.shape[0]} rows, {df_enc.shape[1]} columns")
 
         #Save Feature Metadata for Serving Consistency
-        import json, joblib
-        artifacts_dir = os.path.join(project_root, "artifacts")
+        run_id = datetime.now().strftime("run-%Y%m%d-%H%M%S")
+        artifacts_dir = os.path.join(project_root, "artifacts", run_id)
         os.makedirs(artifacts_dir, exist_ok=True)
+        
+        # Save run_id to latest_run.txt for local development
+        latest_run_path = os.path.join(project_root, "artifacts", "latest_run.txt")
+        with open(latest_run_path, "w") as f:
+            f.write(run_id)
 
         feature_cols = list(df_enc.columns)
         
@@ -123,7 +130,7 @@ def main(args):
         mlflow.log_artifact(os.path.join(artifacts_dir, "nn_model.pkl"))
         mlflow.log_artifact(os.path.join(artifacts_dir, "embeddings.pkl"))
         mlflow.log_artifact(os.path.join(artifacts_dir, "df_lookup.pkl"))
-        print("Model and embeddings and lookup table saved")
+        print(f"Model and embeddings and lookup table saved to {artifacts_dir}")
 
         # === STAGE 8: Upload to Hugging Face Hub ===
         print("Uploading artifacts to Hugging Face Hub...")

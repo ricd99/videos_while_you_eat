@@ -10,6 +10,7 @@ load_dotenv() # load here so os.environ works (in _load_api_keys_) works?
 
 
 class Settings(BaseSettings):
+    hf_token: str = ""
     rds_host: str = ""
     rds_password: str = ""
     aws_access_key_id: str = ""
@@ -25,7 +26,7 @@ class Settings(BaseSettings):
     # Canonical artifacts root and current run pointer (Phase 0)
     artifacts_root: Path = PROJECT_ROOT / "artifacts"
     latest_artifacts_run: Optional[str] = None
-    hf_repo_id: str = "ricd99/ytrec-artifacts"  # Hugging Face repo for model artifacts
+    hf_repo_id: str = "ryhuang/ytrec-nn"  # Hugging Face repo for model artifacts
 
     model_config = SettingsConfigDict(
         env_file=PROJECT_ROOT / ".env",
