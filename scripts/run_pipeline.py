@@ -16,6 +16,7 @@ sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
 from scripts.data_pipeline.collect_channels import collect
 from scripts.data_pipeline.etl import run_etl
 from src.db.connection import db_manager
+from src.core.config import settings
 from src.features.build_features import build_features
 from src.utils.validate_data import validate_data
 from src.embedding import batch_encode
@@ -129,8 +130,6 @@ def main(args):
         from huggingface_hub import HfApi
         api = HfApi()
 
-        hf_repo_id = os.getenv("HF_REPO_ID", "ricd99/ytrec-artifacts")
-
         # Upload each artifact
         artifacts_to_upload = ["nn_model.pkl", "embeddings.pkl", "df_lookup.pkl", "feature_columns.json"]
         for filename in artifacts_to_upload:
@@ -139,9 +138,9 @@ def main(args):
                 api.upload_file(
                     path_or_fileobj=filepath,
                     path_in_repo=filename,
-                    repo_id=hf_repo_id,
+                    repo_id=settings.hf_repo_id,
                 )
-                print(f"Uploaded {filename} to {hf_repo_id}")
+                print(f"Uploaded {filename} to {settings.hf_repo_id}")
 
         print("Artifacts uploaded to Hugging Face Hub")
         

@@ -25,6 +25,7 @@ class Settings(BaseSettings):
     # Canonical artifacts root and current run pointer (Phase 0)
     artifacts_root: Path = PROJECT_ROOT / "artifacts"
     latest_artifacts_run: Optional[str] = None
+    hf_repo_id: str = "ricd99/ytrec-artifacts"  # Hugging Face repo for model artifacts
 
     model_config = SettingsConfigDict(
         env_file=PROJECT_ROOT / ".env",
