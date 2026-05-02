@@ -1,5 +1,6 @@
-import mlflow 
+import mlflow
 import numpy as np
+from src.core.config import settings
 
 def tune_model(df_train: np.ndarray, df_test):
     """
@@ -11,6 +12,6 @@ def tune_model(df_train: np.ndarray, df_test):
         df_test: Embedding matrix from test data
     """
 
-    params = {"n_neighbors": 15, "metric": "cosine"}
+    params = {"n_neighbors": settings.n_neighbors_model, "metric": "cosine"}
     mlflow.log_params(params)
     return params

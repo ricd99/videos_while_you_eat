@@ -27,6 +27,8 @@ class Settings(BaseSettings):
     artifacts_root: Path = PROJECT_ROOT / "artifacts"
     latest_artifacts_run: Optional[str] = None
     hf_repo_id: str = "ryhuang/ytrec-nn"  # Hugging Face repo for model artifacts
+    n_neighbors_model: int = 15
+    top_k_recommendations: int = 5
 
     model_config = SettingsConfigDict(
         env_file=PROJECT_ROOT / ".env",
