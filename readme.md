@@ -2,8 +2,6 @@
 
 I found myself refreshing my YouTube recommendations for 10+ minutes on most nights when I ate alone. This web app helps find video essay-style YouTube channels (i.e. medium and long-form content creators that are enjoyable to watch while eating a meal) that are similar to a given channel. I am no longer refreshing my recommendations for 10+ minutes!
 
-This repo is split into two parts. The first part develops the nearest neighbor model that identifies similar channels. This contains the ETL pipeline + model training + uploading the model to Hugging Face. The second part is the web app that handles user queries. This includes receiving a channel name as input, turning the channel name into data for the model, and retrieving and displaying the prediction. The scripts that handle model training are located in the scripts/ directory, and the ui is located at app/main.py. Both parts rely on code located in the src/ directory. Repository organization improvements are possible; it is something I'm actively thinking about. Suggestions are welcome!
-
 ## Technologies
 This is a non-exhaustive list that covers the core technologies used for this project. 
 
@@ -16,18 +14,30 @@ This is a non-exhaustive list that covers the core technologies used for this pr
 - Google Cloud Run
 
 ## My Process
-I love watching hockey, but I swear I've always had a bit of a jinx. It really seemed like whenever I'd say one team would win a game, the other would always win. So, I wanted to build something that could help me make data-driven statements (!) in front of my friends to hopefully help me sound smarter!
-- First, I collected season-level team data dating back to the 2008-2009 season from moneypuck.com, performed some initial data exploration, and developed a few approaches to make predictions using this dataset. In addition, playoff appearance was not in the moneypuck dataset, so I manually collected that data myself.
-- For feature engineering, I tried: doing nothing (i.e. just doing the minimal amount of preprocessing for the prediction algorithms to run), manual feature engineering (by using visualizations and my (limited) domain knowledge), and feature selection using scikit-learn's RFECV.
-- For the model, I tried scikit-learn's ridge regressor, random forest, K-neighbours, gradient-boosted trees, ensembles, and stacking.
+This repo is split into two parts. The first part develops the nearest neighbor model that identifies similar channels. This contains the ETL pipeline + model training + uploading the model to Hugging Face. The second part is the web app that handles user queries. This includes receiving a channel name as input, turning the channel name into data for the model, and retrieving and displaying the prediction. The scripts that handle model training are located in the scripts/ directory, and the ui is located at app/main.py. Both parts rely on code located in the src/ directory. Repository organization improvements are possible; it is something I'm actively thinking about. Suggestions are welcome!
 
-The combo that gave the best results was using feature selection on a minimally preprocessed dataset (no other feture engineering) and a ridge regression model.
+- Model training
+  - First, I wrote a script using the YouTube API to collect channel data by simply searching. My searches started broad ("video essay"), but I think it is more effective to search at a more specific level to get the channels that tell the most interesting stories ("biggest choke in sports history", "jazz music's biggest controversy"). Two API calls are needed: one to collect channel data, the second to collect keywords from recently uploaded videos. I also have filters to avoid collecting inactive/truly beginner-level channels.
+- The next stage is the ETL pipeline to clean and transform data for the model. I was planning to use AWS to deploy my project (I did not end up doing this, as you'll read later on), so I used the S3 object storage and RDS database in AWS to store my data. I dump the raw YouTube API data into S3, clean the data and dump it into the first table in my database, and then engineer features (in this case, it was simply combining all text columns into one big column) and dump it into the second table. The data is ready to be trained on!
+- I first experimented with CountVectorizer from scikit-learn, which is simply a Bag of Words (BoW) model. This did not give good results, so I switched gears and tried a sentence embedding model. This also did not give good results! The key feature engineering step that dramatically improved results was combining all text columns into one giant column. This made sense for the BoW model, as it simply counts word occurrences, and one giant column gives the most accurate word count representation. I tested this new engineered dataset with sentence embeddings, and the results were even better. I'm not sure exactly why, but perhaps it's because this gives the model the most information possible in one window, which results in a better understanding compared to when the text was spread out over multiple shorter columns. Finally, if you're wondering how I evaluated the results, I simply tested a bunch of common channels, searched up the recommended one, and judged their similarity manually. If there is a meaningful metric to do this automatically, please let me know!
+- Finally, I uploaded the model to Hugging Face, where my web app will call it.
+  
+- Web App
+  - I used Gradio to develop a simple UI and mounted it using FastAPI (/ui)
+  - I also exposed a REST API endpoint using FastAPI that provides the same service. (/predict)
 
-I also uploaded the datasets I created to Kaggle, and they got a modest amount of attention there: 
-- [NHL team data by season](https://www.kaggle.com/datasets/ryanhdar/nhl-team-data-by-season-2015-christmas-2025)
-- [NHL team data by season with playoff appearance column](https://www.kaggle.com/datasets/ryanhdar/nhl-team-data-and-playoff-result)
+There was not much difficulty here, partly because I kept it simple on purpose, and partly because Gradio and FastAPI are pleasant to set up and use!
 
 ## Results and next steps
-Finding a way to measure my results is not the most straightforward, as sports odds can change dramatically in just a few games. I decided a reasonable metric was to see how closely my predictions resembled moneypuck.com, a site whose predictions are relied upon by many fantasy hockey general managers and sports betters. I matched 14/16 predictions, which is not bad! The main addition I want to make to this project is to integrate a real-time data pipeline. This way, the model constantly gets fresh data from the newest NHL games, and it can update its playoff odds in real-time. 
+I am satisfied with the results. Searches for video essay channels on a variety of topics (history, movies, sports...) have reasonable results. I believe the biggest limitation is not the model, but rather the quality of the dataset. I am thinking about more effective ways to find high-quality channels that may not have much visibility and weed out AI-slop channels.
 
-My model's percentage odds can be viewed at the bottom of the final_model.ipynb file inside the notebooks folder. Unfortunately, but unsurprisingly and accurately, my Canucks are dead last.
+- The lookup table that turns the model's predictions into  YouTube channel names is uploaded to Hugging Face alongside the model. Instead, I'd like to retrieve the channel names by referring to the database, so an extra lookup table artifact does not need to be made at training time.
+- Introduce a "popular" vs "hidden gem" setting that allows users to choose whether they want popular or unknown channels to be recommended.
+- Experiment using FAISS instead of scikit-learn's knn. I'm curious what the differences will be, or even if there will be differences?
+- Freshen up the UI. I barely deviated from a Gradio UI template. Some quick updates I plan to implement are eliminating unnecessary buttons/adding a cancel request button, and formatting the output more nicely (as it just appears in a textbox right now). 
+- Ultimately, I think this app is more effective as a browser extension.
+
+Especially for the last point (but for others as well), I welcome others to reach out and help me!
+
+
+**The first query may take around 20s, but every query after that is usually under 3s. This is because the app completely shuts down if no requests are coming in to save my Google credits!
