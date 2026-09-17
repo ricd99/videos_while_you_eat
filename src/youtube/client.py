@@ -176,10 +176,9 @@ class YouTubeClient:
                     "description": desc,
                 })
 
-                next_page = response.get("nextPageToken")
-                if not next_page:
-                    break
-
+            next_page = response.get("nextPageToken")
+            if not next_page or len(videos) >= max_videos:
+                break
             pages_fetched += 1
 
         return videos
