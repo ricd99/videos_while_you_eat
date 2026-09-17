@@ -7,7 +7,7 @@ import boto3
 from dotenv import load_dotenv
 from datetime import datetime, timezone
 
-QUERIES_PER_RUN = 30
+QUERIES_PER_RUN = 50
 
 PROJECT_ROOT = Path(__file__).resolve().parent.parent.parent
 sys.path.insert(0, str(PROJECT_ROOT))
