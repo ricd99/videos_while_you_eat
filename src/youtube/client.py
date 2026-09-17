@@ -33,9 +33,10 @@ class YouTubeClient:
             return True
         return False
 
-    def _try_execute(self, request, max_retries: int = 3):
+    def _try_execute(self, make_request, max_retries: int = 3):
         retries = 0
         while retries < max_retries:
+            request = make_request()
             try:
                 return request.execute()
             except HttpError as e:
@@ -44,7 +45,6 @@ class YouTubeClient:
                     logger.warning("YouTube API quota exceeded, attempting key rotation")
                     if self._rotate_key():
                         retries += 1
-                        request = request
                         continue
                     else:
                         logger.error("All API keys exhausted")
@@ -58,15 +58,16 @@ class YouTubeClient:
         pages_fetched = 0
 
         while len(results) < max_results and pages_fetched < max_pages:
-            request = self._yt.search().list(
-                part="snippet",
-                q=query,
-                type="channel",
-                relevanceLanguage="en",
-                maxResults=max_results,
-                pageToken=next_page if next_page else ""
+            response = self._try_execute(
+                lambda: self._yt.search().list(
+                    part="snippet",
+                    q=query,
+                    type="channel",
+                    relevanceLanguage="en",
+                    maxResults=max_results,
+                    pageToken=next_page if next_page else ""
+                )
             )
-            response = self._try_execute(request)
 
             for item in response.get("items", []):
                 if len(results) >= max_results:
@@ -87,11 +88,12 @@ class YouTubeClient:
         results = []
         for i in range(0, len(channel_ids), 50):
             batch = [c["channel_id"] for c in channel_ids[i:i+50]]
-            request = self._yt.channels().list(
-                part="snippet,statistics,contentDetails,topicDetails,brandingSettings",
-                id=",".join(batch)
+            response = self._try_execute(
+                lambda: self._yt.channels().list(
+                    part="snippet,statistics,contentDetails,topicDetails,brandingSettings",
+                    id=",".join(batch)
+                )
             )
-            response = self._try_execute(request)
 
             for ch in response.get("items", []):
                 snippet = ch.get("snippet", {})
@@ -113,12 +115,13 @@ class YouTubeClient:
         return results
 
     def get_channel_info(self, channel_id: str) -> Optional[dict]:
-        request = self._yt.channels().list(
-            part="brandingSettings,contentDetails,snippet,topicDetails",
-            id=channel_id
-        )
         try:
-            response = self._try_execute(request)
+            response = self._try_execute(
+                lambda: self._yt.channels().list(
+                    part="brandingSettings,contentDetails,snippet,topicDetails",
+                    id=channel_id
+                )
+            )
         except Exception:
             return None
 
@@ -147,14 +150,15 @@ class YouTubeClient:
         pages_fetched = 0
 
         while len(videos) < max_videos and pages_fetched < 5:
-            request = self._yt.playlistItems().list(
-                part="snippet",
-                playlistId=playlist_id,
-                maxResults=50,
-                pageToken=next_page if next_page else ""
-            )
             try:
-                response = self._try_execute(request)
+                response = self._try_execute(
+                    lambda: self._yt.playlistItems().list(
+                        part="snippet",
+                        playlistId=playlist_id,
+                        maxResults=50,
+                        pageToken=next_page if next_page else ""
+                    )
+                )
             except Exception:
                 break
 
