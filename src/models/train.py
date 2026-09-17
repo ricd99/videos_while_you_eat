@@ -18,9 +18,7 @@ def train_model(df_train: pd.DataFrame, params: dict) -> tuple[NearestNeighbors,
         tuple: (fitted_nn_model, embedding_matrix, df_with_embeddings)
     
     Example:
-        >>> df = load_data("data/processed/ve_channels/ve_with_features.json")
-        >>> df = preprocess_data(df)
-        >>> df = build_features(df)
+        >>> df = build_features(preprocess_data(raw_df))
         >>> nn, embeddings, df_emb = train_model(df, {"n_neighbors": 15, "metric": "cosine"})
     """
 

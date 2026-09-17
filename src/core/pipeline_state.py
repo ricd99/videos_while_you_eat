@@ -4,13 +4,9 @@ Tracks which stages have completed and handles error recovery.
 """
 import json
 import boto3
-from pathlib import Path
 from datetime import datetime
 from src.core.config import settings
 from typing import Optional
-
-PROJECT_ROOT = Path(__file__).resolve().parent.parent.parent
-STATE_FILE = PROJECT_ROOT / "data" / "misc" / "pipeline_state.json"
 
 
 class PipelineState:
@@ -21,7 +17,6 @@ class PipelineState:
     def __init__(self):
         self.s3 = boto3.client("s3", region_name="us-west-2")
         self.bucket = settings.s3_bucket
-        self.state_file = STATE_FILE
         self.state = self._load()
     
     def _load(self):
@@ -66,14 +61,6 @@ class PipelineState:
         if metadata:
             self.state[f"{stage}_metadata"] = metadata
         self._save()
-    
-    def is_stage_complete(self, stage: str) -> bool:
-        """Check if a stage was completed in the current run."""
-        return stage in self.state["stages_completed"]
-    
-    def should_skip_stage(self, stage: str) -> bool:
-        """Determine if a stage should be skipped (completed in current run)."""             #TODO: not implemented (should_skip_stage and is_stage_complete)
-        return self.is_stage_complete(stage)
     
     def set_new_channel_count(self, count: int):
         """Record the number of new channels processed."""
