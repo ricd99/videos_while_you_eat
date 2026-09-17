@@ -52,22 +52,35 @@ class YouTubeClient:
                 raise
         raise RuntimeError("Max retries exceeded")
 
-    def search_channels(self, query: str, max_results: int = 10) -> list[dict]:
-        request = self._yt.search().list(
-            part="snippet",
-            q=query,
-            type="channel",
-            relevanceLanguage="en",
-            maxResults=max_results
-        )
-        response = self._try_execute(request)
-
+    def search_channels(self, query: str, max_results: int = 50, max_pages: int = 2) -> list[dict]:
         results = []
-        for item in response.get("items", []):
-            results.append({
-                "channel_id": item["snippet"]["channelId"],
-                "channel_name": item["snippet"]["title"],
-            })
+        next_page = None
+        pages_fetched = 0
+
+        while len(results) < max_results and pages_fetched < max_pages:
+            request = self._yt.search().list(
+                part="snippet",
+                q=query,
+                type="channel",
+                relevanceLanguage="en",
+                maxResults=max_results,
+                pageToken=next_page if next_page else ""
+            )
+            response = self._try_execute(request)
+
+            for item in response.get("items", []):
+                if len(results) >= max_results:
+                    break
+                results.append({
+                    "channel_id": item["snippet"]["channelId"],
+                    "channel_name": item["snippet"]["title"],
+                })
+
+            next_page = response.get("nextPageToken")
+            if not next_page:
+                break
+            pages_fetched += 1
+
         return results
 
     def get_channel_details(self, channel_ids: list[dict]) -> list[dict]:
