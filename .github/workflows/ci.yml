@@ -1,8 +1,12 @@
-name: Build and Push to Docker Hub
+name: Build, Push, and Deploy
 
 on:
   push:
     branches: [main]  # Only trigger on main branch pushes
+  workflow_dispatch:  # Manual trigger for on-demand runs
+
+permissions:
+  contents: read
 
 jobs:
   build-and-push:
@@ -28,3 +32,26 @@ jobs:
           file: ./Dockerfile  # change if your Dockerfile has a different name or path
           push: true
           tags: ricd99/ytrec:latest
+
+  deploy-cloudrun:
+    needs: build-and-push
+    runs-on: ubuntu-latest
+    # Auth uses Workload Identity Federation (no long-lived key).
+    # Required secrets: GCP_WORKLOAD_IDENTITY_PROVIDER, GCP_SERVICE_ACCOUNT.
+    permissions:
+      contents: read
+      id-token: write
+
+    steps:
+      - name: Authenticate to Google Cloud
+        uses: google-github-actions/auth@v2
+        with:
+          workload_identity_provider: ${{ secrets.GCP_WORKLOAD_IDENTITY_PROVIDER }}
+          service_account: ${{ secrets.GCP_SERVICE_ACCOUNT }}
+
+      - name: Deploy to Cloud Run
+        uses: google-github-actions/deploy-cloudrun@v2
+        with:
+          service: videos-while-you-eat
+          region: us-west1
+          image: docker.io/ricd99/ytrec:latest
