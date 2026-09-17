@@ -1,9 +1,12 @@
 import json
+import random
 import sys
 from pathlib import Path
 import boto3
 from dotenv import load_dotenv
 from datetime import datetime, timezone
+
+QUERIES_PER_RUN = 30
 
 PROJECT_ROOT = Path(__file__).resolve().parent.parent.parent
 sys.path.insert(0, str(PROJECT_ROOT))
@@ -16,7 +19,14 @@ from src.youtube.client import AllAPIKeysExhaustedError
 s3 = boto3.client("s3", region_name="us-west-2")
 
 with open(PROJECT_ROOT / "data" / "consts" / "yt_api_queries.json", "r") as f:
-    QUERIES = json.load(f)
+    QUERY_POOL = json.load(f)
+
+
+def _select_queries_for_today() -> list:
+    rng = random.Random(datetime.now().strftime("%Y-%m-%d"))
+    selected = rng.sample(QUERY_POOL, min(QUERIES_PER_RUN, len(QUERY_POOL)))
+    print(f"selected {len(selected)} queries for today's run")
+    return selected
 
 
 def _search_channels(query: str, seen: set) -> list:   # bubbles up errors raised by yt_client.search_channels to collect()
@@ -49,7 +59,7 @@ def collect():
     seen = set()
     total = 0
 
-    for query in QUERIES:
+    for query in _select_queries_for_today():
         try:
             print(f"searching: {query}")
             candidates = _search_channels(query, seen)
