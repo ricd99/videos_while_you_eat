@@ -1,6 +1,7 @@
 import json
 import random
 import sys
+import argparse
 from pathlib import Path
 import boto3
 from dotenv import load_dotenv
@@ -55,7 +56,7 @@ def _save_to_s3(data: list, query: str):
     print(f"saved {len(data)} channels to s3://{settings.s3_bucket}/{filename}")
 
 
-def collect():
+def collect(local: bool = False):
     seen = set()
     total = 0
 
@@ -88,7 +89,8 @@ def collect():
         print(f"  found {len(detailed)} channels, {len(clean)} passed filters, {len(flagged)} flagged")
 
         if clean:
-            _save_to_s3(clean, query)
+            if not local:
+                _save_to_s3(clean, query)
             total += len(clean)
 
     print(f"\ndone. collected {total} new channels total.")
@@ -101,7 +103,9 @@ def _make_safe_filename(query: str, ext: str) -> str:
 
 
 if __name__ == "__main__":
-    collect()
+    p = argparse.ArgumentParser(description="Collect channels from YouTube API")
+    p.add_argument("--local", action="store_true", help="skip S3 upload (dev runs)")
+    collect(local=p.parse_args().local)
 
 
 """
