@@ -90,7 +90,10 @@ def collect(local: bool = False):
 
         if clean:
             if not local:
-                _save_to_s3(clean, query)
+                try:
+                    _save_to_s3(clean, query)
+                except Exception as e:
+                    print(f"s3 save failed for '{query}': {e}, skipping upload")
             total += len(clean)
 
     print(f"\ndone. collected {total} new channels total.")
