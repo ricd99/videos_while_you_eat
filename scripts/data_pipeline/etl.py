@@ -15,6 +15,7 @@ from src.db.connection import db_manager
 from src.data.preprocess_data import preprocess_data
 from src.features.build_features import build_features
 from src.data.fetch_data_given_query_channel import _get_channel_videos
+from src.youtube.client import AllAPIKeysExhaustedError
 
 s3 = boto3.client("s3", region_name="us-west-2")
 
@@ -83,8 +84,12 @@ def run_etl() -> int:
             print(f"appending video data for channel: {channel['channel_name']}")
             _get_channel_videos(channel)
             completed.append(channel)
-        except Exception as e:
+        except AllAPIKeysExhaustedError:
+            print("all api keys exhausted, stopping etl")
             break
+        except Exception as e:
+            print(f"error appending video data for {channel.get('channel_name')}: {e}, skipping")
+            continue
 
     if completed:
         df = pd.DataFrame(completed)
